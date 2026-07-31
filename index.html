@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Universal Amplicon Pipeline Tutorial</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script defer src="js/jszip.min.js"></script>
+  <script defer src="js/script.js"></script>
+</head>
+<body>
+  <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <div class="site-title-wrap">
+        <h1>Universal Amplicon Pipeline Tutorial</h1>
+        <p class="site-subtitle">Created by Jesse McNichol and Nathan LR Williams.</p>
+      </div>
+
+      <nav class="section-nav" aria-label="Page sections">
+        <a href="#overview">Overview</a>
+        <a href="#getting-started">Getting Started</a>
+        <a href="#config">Config</a>
+        <a href="#samples">Sample File</a>
+        <a href="#amplicon">Amplicon Concentrations</a>
+        <a href="#standards">Internal Standards</a>
+        <a href="#export">Export</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card intro" id="overview">
+      <div class="section-kicker">Step 0 • Overview</div>
+      <h2>Welcome</h2>
+      <p>
+        Welcome to the Universal amplicon pipeline tutorial and setup workflow. This workflow helps you go from
+        demultiplexed amplicon FASTQ files to a ready-to-run Snakemake configuration package.
+      </p>
+      <p>
+        The pipeline was designed around the 515F/926R universal primer pair, but it can be used with other amplicon
+        primers provided the primer section is filled out correctly. It supports 16S and 18S reads, internal standards,
+        and the metadata needed to generate the final files.
+      </p>
+      <p>
+        Use the sections below in order, then download the generated <code>config/</code> folder when you are finished.
+      </p>
+
+      <div class="preamble">
+        <h3>Why use a universal SSU rRNA primer set?</h3>
+        <p>
+          Metabarcoding using SSU rRNA as a marker gene is a powerful technique for profiling biological communities.
+          Metabarcoding studies can be separated roughly into three groups:
+        </p>
+        <ol>
+          <li>Studies of the “microbiome”—Bacteria and Archaea.</li>
+          <li>Studies of microbial Eukarya, including phytoplankton and heterotrophic protists.</li>
+          <li>Studies of macroscopic Eukarya, such as animals and plants.</li>
+        </ol>
+        <p>
+          The first group tends to use 16S SSU rRNA as a marker gene, while the second and third groups use 18S.
+          PCR primer design has followed this division, with many primer sets targeting one group while
+          discriminating against another.
+        </p>
+        <p>
+          However, 16S and 18S are, in evolutionary terms, the same molecule. SSU rRNA primers can therefore target
+          both 16S and 18S in a single PCR assay. This is not two primer sets: one forward and one reverse primer
+          amplify 16S from Archaea, Bacteria, chloroplasts, and mitochondria alongside eukaryotic nuclear 18S in the
+          same tube.
+        </p>
+        <p>
+          That this is possible is remarkable. It shows that regions of the SSU rRNA molecule have remained
+          sufficiently conserved across approximately 3.5 billion years of evolutionary history to amplify
+          organisms as different as bacteria, chloroplasts, protists, and jellyfish.
+        </p>
+
+        <h3>Two example sequence pools</h3>
+        <p>
+          The first dataset comes from DNA extracted from 1 L of whole Pacific Ocean seawater filtered on a
+          0.2 µm Sterivex filter. It contains material ranging from prokaryotes and microbial eukaryotes to fragments,
+          larvae, or propagules from animals.
+        </p>
+        <figure class="preamble-figure">
+          <img
+            src="images/220902_122853_LJ-GRADIENTS-samples-trace.png"
+            alt="LJ-Gradients sequence pool trace with a large 16S peak at 539 base pairs and a smaller 18S peak at 707 base pairs"
+            loading="lazy"
+          />
+          <figcaption>
+            A large peak at 539 bp represents 16S from Bacteria, Archaea, plastids, and mitochondria. The smaller
+            peak at 707 bp represents 18S from protists, metazoa, picoeukaryotes, and other eukaryotes.
+          </figcaption>
+        </figure>
+        <p>
+          The second dataset comes from the same region of the Pacific Ocean, but larger organisms were concentrated
+          with a net tow. Most of the DNA therefore comes from animals, protists, and other microeukaryotes.
+        </p>
+        <figure class="preamble-figure">
+          <img
+            src="images/220902_122853_NM-GRADIENTS-samples-trace.png"
+            alt="NM-Gradients sequence pool trace with a small 16S peak at 546 base pairs and a large 18S peak at 736 base pairs"
+            loading="lazy"
+          />
+          <figcaption>
+            The pattern is reversed: the 16S peak at 546 bp is small, while the 18S peak at 736 bp is large. Both
+            datasets were amplified with the same primer set and procedure.
+          </figcaption>
+        </figure>
+
+        <h3>Why this pipeline is needed</h3>
+        <p>
+          One reason this approach has not been used more commonly is the mismatch between sequencing read lengths
+          and amplicon lengths. The primers this pipeline was designed for bind at SSU rRNA coordinates 515 and 926
+          using <em>E. coli</em> as a reference. The resulting bacterial amplicon is approximately 411 bp, although
+          its exact length varies among organisms. Archaeal amplicons are approximately the same length.
+        </p>
+        <aside class="note">
+          Other universal primer combinations can also work. Another universal binding location is 1392, allowing
+          primer combinations such as 926F/1392R or 515F/1392R.
+        </aside>
+        <p>
+          In Eukarya, the corresponding primer coordinates are 562 and 1150 in <em>S. cerevisiae</em>, producing an
+          amplicon of approximately 588 bp. Although 18S length varies across evolutionary and ecological groups,
+          eukaryotic amplicons are about 177 bp longer than prokaryotic amplicons on average.
+        </p>
+        <p>
+          Modern Illumina sequencing has a maximum paired-end read length of 300 bp, and low-quality bases—especially
+          in the reverse read—must often be trimmed. The remaining forward and reverse reads usually overlap for 16S,
+          but not for 18S. Most conventional amplicon pipelines require that overlap and consequently discard 18S
+          reads from 515Y/926R data.
+        </p>
+        <p>
+          Based on an initial prototype by <a href="https://astrobiomike.github.io/" target="_blank" rel="noopener">Mike Lee</a>,
+          Jesse McNichol refined a method for separating 16S and 18S reads in silico, and the pipeline grew from
+          there. Yi-Chun Yeh, Melody Aleman, and Colette Fletcher-Hoppe have since made important contributions,
+          many inspired by Jed Fuhrman’s ideas.
+        </p>
+      </div>
+    </section>
+
+    <section class="card" id="getting-started">
+      <div class="section-kicker">Step 1 • Getting started</div>
+      <h2>Repository and software setup</h2>
+      <p>
+        First clone the repository that contains the pipeline. You will also need Git, Conda, and Snakemake.
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel__hint">Check whether Git is already installed on your machine before you try to clone the repository.</div>
+        <div class="code-panel__bar">
+          <span>Check Git installation</span>
+          <button class="copy-btn" data-copy="#git-check-code">Copy</button>
+        </div>
+        <pre id="git-check-code">git --version || echo "Git is not installed"</pre>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-panel__hint">Clone the repository that contains the pipeline and move into the Snakemake directory to prepare for configuration.</div>
+        <div class="code-panel__bar">
+          <span>Clone the pipeline repository</span>
+          <button class="copy-btn" data-copy="#clone-code">Copy</button>
+        </div>
+        <pre id="clone-code">git clone https://github.com/jcmcnch/eASV-pipeline-for-515Y-926R.git
+cd eASV-pipeline-for-515Y-926R/snakemake</pre>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-panel__hint">Check whether Snakemake is already installed so you can run the workflow later.</div>
+        <div class="code-panel__bar">
+          <span>Check Snakemake installation</span>
+          <button class="copy-btn" data-copy="#snakemake-check-code">Copy</button>
+        </div>
+        <pre id="snakemake-check-code">snakemake --version || echo "Snakemake is not installed"</pre>
+      </div>
+    </section>
+
+    <section class="card" id="config">
+      <div class="section-kicker">Step 2 • Config</div>
+      <h2>Config.yml</h2>
+      <p>Fill these fields to generate the config.yaml file that will be uploaded into the Snakemake directory.</p>
+
+      <div class="panel-grid">
+        <div class="field-group">
+          <label for="studyName">Study Name</label>
+          <input id="studyName" type="text" value="AMT29" />
+        </div>
+
+        <div class="toggle-row">
+          <input id="haveDatabases" type="checkbox" checked />
+          <label for="haveDatabases">I already have the database downloaded and trained</label>
+        </div>
+
+        <div id="dbBlock" class="field-group">
+          <label for="database_dir">Database directory</label>
+          <input id="database_dir" type="text" value="/project2/fuhrman_1138/eASV-pipeline-for-515Y-926R-inworks/snakemake/databases" />
+        </div>
+
+        <div class="field-group">
+          <label for="rawdatadir">Raw data location</label>
+          <input id="rawdatadir" type="text" value="/project2/fuhrman_1138/GRUMP/version-2/AMT29-DNA/00-raw" />
+          <div class="hint">Use the correct path. A trailing slash can cause errors in some setups.</div>
+        </div>
+
+        <div class="two-col">
+          <div class="field-group">
+            <label for="R1file_ending">R1 file ending</label>
+            <input id="R1file_ending" type="text" value=".R1.fastq.gz" />
+          </div>
+          <div class="field-group">
+            <label for="R2file_ending">R2 file ending</label>
+            <input id="R2file_ending" type="text" value=".R2.fastq.gz" />
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <input id="intstdToggle" type="checkbox" checked />
+          <label for="intstdToggle">Did you add genomic internal standards?</label>
+        </div>
+
+        <div id="intstdBlock" class="stack">
+          <div class="two-col">
+            <div class="field-group">
+              <label for="intstd1">Internal standard 1</label>
+              <input id="intstd1" type="text" value="BP" />
+            </div>
+            <div class="field-group">
+              <label for="intstd2">Internal standard 2</label>
+              <input id="intstd2" type="text" value="DR" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="intstd3">Internal standard 3</label>
+            <input id="intstd3" type="text" value="TT" />
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field-group">
+            <label for="truncR1">Forward trim length</label>
+            <input id="truncR1" type="number" value="220" />
+          </div>
+          <div class="field-group">
+            <label for="truncR2">Reverse trim length</label>
+            <input id="truncR2" type="number" value="180" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="fwdPrimer">Forward primer</label>
+          <input id="fwdPrimer" type="text" value="GTGYCAGCMGCCGCGGTAA" />
+        </div>
+
+        <div class="field-group">
+          <label for="revPrimer">Reverse primer</label>
+          <input id="revPrimer" type="text" value="CCGYCAATTYMTTTRAGTTT" />
+        </div>
+
+        <div class="toggle-row">
+          <input id="qiimeToggle" type="checkbox" checked />
+          <label for="qiimeToggle">Do you have qiime2 installed?</label>
+        </div>
+
+        <div id="qiimeBlock" class="field-group">
+          <label for="qiime2version">Qiime2 version / location</label>
+          <input id="qiime2version" type="text" value="../envs/qiime2-amplicon-ubuntu-2024-5-conda.yml" />
+        </div>
+
+        <div class="field-group">
+          <label for="SILVAversion">SILVAversion</label>
+          <input id="SILVAversion" type="text" value="138.1" />
+        </div>
+      </div>
+
+      <div class="validation-card" id="validationCard">
+        <div class="validation-card__title">Validation</div>
+        <ul id="validationList" class="validation-list"></ul>
+      </div>
+
+      <button
+        class="secondary preview-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="configPreviewPanel"
+        data-preview-target="configPreviewPanel"
+      >Preview config.yaml</button>
+
+      <div class="code-panel hidden" id="configPreviewPanel">
+        <div class="code-panel__hint">Preview the generated config.yaml file so you can verify the values before downloading the package.</div>
+        <div class="code-panel__bar">
+          <span>config.yaml preview</span>
+          <button class="copy-btn" data-copy="#configPreview">Copy</button>
+        </div>
+        <pre id="configPreview"></pre>
+      </div>
+    </section>
+
+    <section class="card" id="samples">
+      <div class="section-kicker">Step 3 • Sample file</div>
+      <h2>Sample File</h2>
+      <p>
+        Enter the number of samples to create the table, then type directly or paste a block of cells copied from
+        Excel, Google Sheets, or equivalent software.
+      </p>
+
+      <div class="sample-count-control">
+        <div class="field-group">
+          <label for="sampleCount">Number of samples</label>
+          <input id="sampleCount" type="number" value="1" min="1" max="500" inputmode="numeric" />
+          <div class="hint">The table updates automatically. A spreadsheet range can be pasted starting in any cell.</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="sample-table">
+          <thead>
+            <tr>
+              <th>sample</th>
+              <th>replicate</th>
+              <th>condition</th>
+              <th>Depth (m)</th>
+              <th>Latitude and Longitude</th>
+              <th>Longitude [degrees_east]</th>
+              <th>Latitude [degrees_north]</th>
+              <th>time</th>
+              <th>BP_ng</th>
+              <th>DR_ng</th>
+              <th>TT_ng</th>
+              <th>internal_std_normalization_factor</th>
+              <th>units</th>
+            </tr>
+          </thead>
+          <tbody id="sampleBody"></tbody>
+        </table>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="addSampleBtn" type="button">+ Add sample row</button>
+        <button class="secondary" id="removeSampleBtn" type="button">Remove last row</button>
+      </div>
+
+      <button
+        class="secondary preview-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="samplesPreviewPanel"
+        data-preview-target="samplesPreviewPanel"
+      >Preview samples.tsv</button>
+
+      <div class="code-panel hidden" id="samplesPreviewPanel">
+        <div class="code-panel__hint">Preview the samples.tsv file to make sure the columns and rows reflect the metadata you entered.</div>
+        <div class="code-panel__bar">
+          <span>samples.tsv preview</span>
+          <button class="copy-btn" data-copy="#samplesPreview">Copy</button>
+        </div>
+        <pre id="samplesPreview"></pre>
+      </div>
+    </section>
+
+    <section class="card" id="amplicon">
+      <div class="section-kicker">Step 4 • Amplicon concentrations</div>
+      <h2>Amplicon Concentrations</h2>
+      <p>
+        The 515F/926R primer pair targets both 16S and nuclear 18S rRNA. Unfortunately, there is a bias against 18S
+        sequences when 16S and 18S sequences are mixed. This is because the 16S and 18S amplicons have different
+        lengths (see the figures in the preamble) and are therefore sequenced at different rates, with a bias toward
+        the shorter amplicons.
+      </p>
+      <p>
+        To correct for this, fill out this section of the configuration with the amounts of 16S and 18S molecules in
+        the starting pool. These values can be obtained by running the pool on a TapeStation or Bioanalyzer, which
+        most sequencing cores perform as part of quality control. The pipeline treats these values as the starting
+        ratio, then calculates the ratio observed on the sequencing platform from the final 16S and 18S read counts.
+        It uses the difference to increase the estimated 18S abundance and decrease the estimated 16S abundance
+        accordingly.
+      </p>
+
+      <div class="two-col">
+        <div class="field-group">
+          <label for="amt16s">16S Amount (pM)</label>
+          <input id="amt16s" type="number" value="1000" step="0.1" />
+        </div>
+        <div class="field-group">
+          <label for="amt18s">18S Amount (pM)</label>
+          <input id="amt18s" type="number" value="1000" step="0.1" />
+        </div>
+      </div>
+
+      <button
+        class="secondary preview-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="ampliconPreviewPanel"
+        data-preview-target="ampliconPreviewPanel"
+      >Preview concentrations file</button>
+
+      <div class="code-panel hidden" id="ampliconPreviewPanel">
+        <div class="code-panel__hint">Preview the amplicon concentrations file to confirm the 16S and 18S values before export.</div>
+        <div class="code-panel__bar">
+          <span>prok_and_euk_SSU_amplicon_concentrations.tsv preview</span>
+          <button class="copy-btn" data-copy="#ampliconPreview">Copy</button>
+        </div>
+        <pre id="ampliconPreview"></pre>
+      </div>
+    </section>
+
+    <section class="card" id="standards">
+      <div class="section-kicker">Step 5 • Internal standards</div>
+      <h2>Internal Standards</h2>
+      <p>Add as many internal standards as needed. Each row can hold the ID, copy number, genome length, and a full 16S sequence.</p>
+
+      <div id="standardsWrap" class="standards-wrap"></div>
+
+      <button class="primary" id="addStandardBtn" type="button">+ Add internal standard</button>
+
+      <button
+        class="secondary preview-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="standardsPreviewPanel"
+        data-preview-target="standardsPreviewPanel"
+      >Preview internal_standards.tsv</button>
+
+      <div class="code-panel hidden" id="standardsPreviewPanel">
+        <div class="code-panel__bar">
+          <span>internal_standards.tsv preview</span>
+          <button class="copy-btn" data-copy="#standardsPreview">Copy</button>
+        </div>
+        <pre id="standardsPreview"></pre>
+      </div>
+    </section>
+
+    <section class="card" id="export">
+      <div class="section-kicker">Step 6 • Export</div>
+      <h2>Export</h2>
+      <p>Once everything is filled in, export the package you can upload into the Snakemake directory.</p>
+
+      <div class="code-panel">
+        <div class="code-panel__bar">
+          <span>Suggested folder structure</span>
+          <button class="copy-btn" data-copy="#folderPreview">Copy</button>
+        </div>
+        <pre id="folderPreview">config/
+  config.yaml
+  samples.tsv
+  prok_and_euk_SSU_amplicon_concentrations.tsv
+  internal_standards.tsv</pre>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="downloadPackageBtn" type="button">Download package</button>
+        <button class="secondary" id="copyCommandsBtn" type="button">Copy terminal commands</button>
+      </div>
+
+      <p id="exportStatus" class="small-muted">Your package will include the filled config files inside a <code>config/</code> folder.</p>
+    </section>
+  </main>
+</body>
+</html>
