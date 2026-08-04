@@ -108,6 +108,7 @@ button, input, textarea { font: inherit; }
   margin: 0 auto;
   padding: 18px 18px 56px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
 }
 
@@ -117,6 +118,8 @@ button, input, textarea { font: inherit; }
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 18px;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
 }
 
@@ -193,18 +196,21 @@ button, input, textarea { font: inherit; }
 
 .panel-grid {
   display: grid;
+  min-width: 0;
   gap: 12px;
   margin-top: 14px;
 }
 .two-col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
   gap: 12px;
 }
-.stack { display: grid; gap: 12px; }
+.stack { display: grid; min-width: 0; gap: 12px; }
 
 .field-group {
   display: grid;
+  min-width: 0;
   gap: 6px;
 }
 .field-group label {
@@ -937,6 +943,10 @@ pre {
 
 .validation-list li.ok { color: #2f5e42; }
 .validation-list li.bad { color: #7b4d26; }
+
+@media (max-width: 900px) {
+  .two-col { grid-template-columns: minmax(0, 1fr); }
+}
 
 @media (max-width: 760px) {
   .site-header__inner,
