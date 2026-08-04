@@ -335,7 +335,10 @@ function bindEvents() {
   });
 
   $("#intstdToggle").addEventListener("change", () => {
-    setVisible("intstdBlock", $("#intstdToggle").checked);
+    const enabled = $("#intstdToggle").checked;
+    setVisible("intstdBlock", enabled);
+    setVisible("standards", enabled);
+    setVisible("standardsNavLink", enabled);
     updateAll();
   });
 
@@ -644,7 +647,10 @@ function init() {
   $("#sampleCount").value = String($$("#sampleBody tr").length);
   $("#standardsWrap").innerHTML = [0, 1, 2].map(slot => standardRowHTML(slot)).join("");
   setVisible("qiimeBlock", $("#qiimeToggle").checked);
-  setVisible("intstdBlock", $("#intstdToggle").checked);
+  const internalStandardsEnabled = $("#intstdToggle").checked;
+  setVisible("intstdBlock", internalStandardsEnabled);
+  setVisible("standards", internalStandardsEnabled);
+  setVisible("standardsNavLink", internalStandardsEnabled);
   updateAll();
   bindEvents();
   updateProgress();
