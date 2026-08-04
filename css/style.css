@@ -669,7 +669,8 @@ a { text-underline-offset: 4px; }
 .card > .actions,
 .card > .standards-wrap,
 .card > .validation-card,
-.card > .small-muted {
+.card > .small-muted,
+.card > .grump-cta {
   width: 100%;
   max-width: var(--content-width);
 }
@@ -880,6 +881,22 @@ pre {
   color: var(--text);
 }
 
+.grump-cta {
+  margin-top: 48px;
+  padding: 32px;
+  border: 1px solid var(--text);
+  background: var(--panel-soft);
+}
+
+.grump-cta h3 { margin: 0 0 12px; }
+.grump-cta p { margin: 0 0 22px; }
+
+.grump-cta__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .secondary:hover,
 .secondary:focus-visible {
   background: var(--text);
@@ -941,6 +958,7 @@ pre {
   .card { padding: 58px 0; }
   .two-col { grid-template-columns: 1fr; }
   .sample-table { min-width: 980px; }
+  .grump-cta { padding: 24px 20px; }
 }
 
 @media (max-width: 480px) {
