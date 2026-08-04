@@ -3,6 +3,7 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const PIPELINE_REPOSITORY = "git@github.com:Nwilliams96/515FY-926R-snakemake-NW-edits.git";
 const PIPELINE_BRANCH = "codex/config-tutorial-integration";
 const SILVA_VERSION = "138.1";
+let lastSuggestedTransferInput = "";
 const SAMPLE_FIELD_KEYS = [
   "sample", "replicate", "condition", "depth", "latlon", "lon", "lat", "time",
   "intstd1_ng", "intstd2_ng", "intstd3_ng", "norm", "units"
@@ -38,8 +39,26 @@ function shellArgument(value) {
   return `'${value.replace(/'/g, `'"'"'`)}'`;
 }
 
+function projectZipFilename() {
+  const projectName = $("#projectName").value.trim() || "my-eASV-project";
+  return `${projectName}.zip`;
+}
+
+function syncProjectPackageNames() {
+  const zipFilename = projectZipFilename();
+  const suggestedTransferInput = `~/Downloads/${zipFilename}`;
+  const transferInput = $("#transferInput");
+
+  if (!lastSuggestedTransferInput || !transferInput.value.trim() || transferInput.value === lastSuggestedTransferInput) {
+    transferInput.value = suggestedTransferInput;
+  }
+
+  lastSuggestedTransferInput = suggestedTransferInput;
+  $("#extractConfigCode").textContent = `unzip ${shellArgument(zipFilename)}`;
+}
+
 function buildConfigUploadPreview() {
-  const inputPath = $("#transferInput").value.trim() || "~/Downloads/universal-amplicon-config.zip";
+  const inputPath = $("#transferInput").value.trim() || `~/Downloads/${projectZipFilename()}`;
   const outputDirectory = $("#transferOutput").value.trim();
   const destination = outputDirectory ? shellArgument(outputDirectory) : "<OUTPUT_DESTINATION>";
   $("#uploadConfigCode").textContent = `scp ${shellArgument(inputPath)} ${destination}`;
@@ -246,6 +265,7 @@ function updateAll() {
     heading.textContent = `${ids[index] || `internal_standard_${index + 1}`}_ng`;
   });
   buildClonePreview();
+  syncProjectPackageNames();
   buildConfigUploadPreview();
   buildReportPath();
   buildConfigPreview();
@@ -604,12 +624,13 @@ async function downloadPackage() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "universal-amplicon-config.zip";
+  const zipFilename = projectZipFilename();
+  a.download = zipFilename;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  $("#exportStatus").textContent = "Downloaded universal-amplicon-config.zip with one complete config folder.";
+  $("#exportStatus").textContent = `Downloaded ${zipFilename} with one complete config folder.`;
 }
 
 function copyCommands() {
