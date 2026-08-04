@@ -680,7 +680,8 @@ a { text-underline-offset: 4px; }
 .card > .standards-wrap,
 .card > .validation-card,
 .card > .small-muted,
-.card > .grump-cta {
+.card > .grump-cta,
+.card > .repository-setup {
   width: 100%;
   max-width: var(--content-width);
 }
@@ -719,6 +720,17 @@ a { text-underline-offset: 4px; }
 .panel-grid { margin-top: 28px; }
 
 .transfer-builder { margin-top: 24px; }
+
+.repository-setup {
+  margin-top: 44px;
+  padding: 28px;
+  border: 1px solid var(--text);
+  background: var(--panel-soft);
+}
+
+.repository-setup h3 { margin: 0 0 12px; }
+.repository-setup > p { margin: 0 0 24px; }
+.repository-setup .code-panel { margin-top: 24px; }
 
 .field-group { gap: 8px; }
 
@@ -973,6 +985,7 @@ pre {
   .two-col { grid-template-columns: 1fr; }
   .sample-table { min-width: 1800px; }
   .grump-cta { padding: 24px 20px; }
+  .repository-setup { padding: 24px 20px; }
 }
 
 @media (max-width: 480px) {

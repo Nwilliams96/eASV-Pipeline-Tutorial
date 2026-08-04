@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Universal Amplicon Pipeline Tutorial</title>
-  <link rel="stylesheet" href="css/style.css?v=contained-layout-20260804" />
+  <link rel="stylesheet" href="css/style.css?v=clone-section-20260804" />
   <script defer src="js/jszip.min.js"></script>
   <script defer src="js/script.js?v=transfer-20260804"></script>
 </head>
@@ -143,8 +143,9 @@
       <div class="section-kicker">Step 1 • Getting started</div>
       <h2>Repository and software setup</h2>
       <p>
-        First choose a folder name for this analysis, then clone the pipeline into that folder. Use a new name for
-        each run so its configuration, logs, and results stay together. You will also need Git, Conda, and Snakemake.
+        Install the required software, then enter a name for your project directory in the repository section below.
+        The clone command updates automatically and creates a new directory with that project name. Use a different
+        name for each analysis so its configuration, logs, and results stay together.
       </p>
 
       <h3>Install the requirements</h3>
@@ -167,20 +168,27 @@ conda activate snakemake
 snakemake --version</pre>
       </div>
 
-      <div class="field-group">
-        <label for="projectName">Project folder name</label>
-        <input id="projectName" type="text" value="AMT29-analysis" pattern="[A-Za-z0-9._-]+" />
-        <div class="hint">Use letters, numbers, periods, underscores, or hyphens. The clone command below updates automatically.</div>
-      </div>
-
-      <div class="code-panel">
-        <div class="code-panel__hint">For the test run, clone Nathan’s private repository from the current development branch using your configured GitHub SSH access.</div>
-        <div class="code-panel__bar">
-          <span>Clone the pipeline repository</span>
-          <button class="copy-btn" data-copy="#clone-code">Copy</button>
+      <div class="repository-setup">
+        <h3>Clone the pipeline repository</h3>
+        <p>
+          Choose the name of the directory that will contain this analysis. The generated command clones the pipeline
+          into a new directory with that name and then moves into it.
+        </p>
+        <div class="field-group">
+          <label for="projectName">Project directory name</label>
+          <input id="projectName" type="text" value="AMT29-analysis" pattern="[A-Za-z0-9._-]+" />
+          <div class="hint">Use letters, numbers, periods, underscores, or hyphens. The command updates automatically.</div>
         </div>
-        <pre id="clone-code">git clone --branch codex/config-tutorial-integration git@github.com:Nwilliams96/515FY-926R-snakemake-NW-edits.git AMT29-analysis
+
+        <div class="code-panel">
+          <div class="code-panel__hint">Copy and run this command from the parent directory where you want the new project directory to be created. GitHub SSH access must already be configured.</div>
+          <div class="code-panel__bar">
+            <span>Clone into your project directory</span>
+            <button class="copy-btn" data-copy="#clone-code">Copy</button>
+          </div>
+          <pre id="clone-code">git clone --branch codex/config-tutorial-integration git@github.com:Nwilliams96/515FY-926R-snakemake-NW-edits.git AMT29-analysis
 cd AMT29-analysis</pre>
+        </div>
       </div>
 
       <div class="code-panel">
