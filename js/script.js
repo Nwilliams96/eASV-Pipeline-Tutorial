@@ -33,9 +33,16 @@ function buildClonePreview() {
   $("#clone-code").textContent = projectCommands();
 }
 
+function shellArgument(value) {
+  if (/^[A-Za-z0-9_~./:@%+=,-]+$/.test(value)) return value;
+  return `'${value.replace(/'/g, `'"'"'`)}'`;
+}
+
 function buildConfigUploadPreview() {
-  const projectName = $("#projectName").value.trim() || "my-eASV-project";
-  $("#uploadConfigCode").textContent = `scp ~/Downloads/universal-amplicon-config.zip <USC_USERNAME>@hpc-transfer1.usc.edu:<FULL_PATH_TO_PROJECT_PARENT>/${projectName}/`;
+  const inputPath = $("#transferInput").value.trim() || "~/Downloads/universal-amplicon-config.zip";
+  const outputDirectory = $("#transferOutput").value.trim();
+  const destination = outputDirectory ? shellArgument(outputDirectory) : "<OUTPUT_DESTINATION>";
+  $("#uploadConfigCode").textContent = `scp ${shellArgument(inputPath)} ${destination}`;
 }
 
 function buildReportPath() {

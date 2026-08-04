@@ -6,7 +6,7 @@
   <title>Universal Amplicon Pipeline Tutorial</title>
   <link rel="stylesheet" href="css/style.css?v=grump-20260804" />
   <script defer src="js/jszip.min.js"></script>
-  <script defer src="js/script.js"></script>
+  <script defer src="js/script.js?v=transfer-20260804"></script>
 </head>
 <body>
   <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
@@ -397,7 +397,7 @@ snakemake --version || echo "Snakemake is not installed"</pre>
         accordingly.
       </p>
 
-      <div class="two-col">
+      <div class="two-col transfer-builder">
         <div class="field-group">
           <label for="amt16s">16S Amount (pM)</label>
           <input id="amt16s" type="number" value="1000" step="0.1" />
@@ -480,13 +480,26 @@ snakemake --version || echo "Snakemake is not installed"</pre>
 
       <p id="exportStatus" class="small-muted">Your package will contain one complete <code>config/</code> folder, including the README, schemas, and setup script.</p>
 
+      <div class="two-col">
+        <div class="field-group">
+          <label for="transferInput">Input package path</label>
+          <input id="transferInput" type="text" value="~/Downloads/universal-amplicon-config.zip" />
+          <div class="hint">Enter the path to the downloaded configuration ZIP on your computer.</div>
+        </div>
+        <div class="field-group">
+          <label for="transferOutput">Output directory</label>
+          <input id="transferOutput" type="text" placeholder="username@server.example.org:/full/path/to/project/" />
+          <div class="hint">For a remote server, use <code>username@hostname:/full/path/</code>. You can also enter a local directory.</div>
+        </div>
+      </div>
+
       <div class="code-panel">
-        <div class="code-panel__hint">Run this command in Terminal on your own computer. Replace the username and parent-directory placeholders; the project folder name updates from Step 1.</div>
+        <div class="code-panel__hint">The command updates from the input and output paths above. Run it in Terminal on the computer that contains the downloaded ZIP.</div>
         <div class="code-panel__bar">
-          <span>Upload the package from Downloads to CARC</span>
+          <span>Copy the configuration package</span>
           <button class="copy-btn" data-copy="#uploadConfigCode">Copy</button>
         </div>
-        <pre id="uploadConfigCode">scp ~/Downloads/universal-amplicon-config.zip &lt;USC_USERNAME&gt;@hpc-transfer1.usc.edu:&lt;FULL_PATH_TO_PROJECT_PARENT&gt;/AMT29-analysis/</pre>
+        <pre id="uploadConfigCode">scp ~/Downloads/universal-amplicon-config.zip &lt;OUTPUT_DESTINATION&gt;</pre>
       </div>
 
       <p>
@@ -494,13 +507,13 @@ snakemake --version || echo "Snakemake is not installed"</pre>
         <a class="requirement-link" href="https://cyberduck.io/download/" target="_blank" rel="noopener">Cyberduck</a>
         or
         <a class="requirement-link" href="https://filezilla-project.org/" target="_blank" rel="noopener">FileZilla</a>.
-        Connect with SFTP using <code>hpc-transfer1.usc.edu</code> and your USC username.
+        Connect with SFTP using the hostname and login details supplied by your institution or server administrator.
       </p>
 
       <div class="code-panel">
-        <div class="code-panel__hint">After the ZIP reaches CARC, run this from inside the cloned project folder to create its <code>config/</code> directory.</div>
+        <div class="code-panel__hint">After the ZIP reaches its destination, run this from inside the cloned project folder to create its <code>config/</code> directory.</div>
         <div class="code-panel__bar">
-          <span>Extract the configuration package on CARC</span>
+          <span>Extract the configuration package</span>
           <button class="copy-btn" data-copy="#extractConfigCode">Copy</button>
         </div>
         <pre id="extractConfigCode">unzip universal-amplicon-config.zip</pre>
