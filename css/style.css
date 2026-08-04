@@ -13,8 +13,8 @@
   --brown-dark: #8e6c43;
   --shadow: 0 8px 22px rgba(18, 50, 35, 0.08);
   --radius: 16px;
-  --max: 1200px;
-  --content-width: 820px;
+  --max: 1440px;
+  --content-width: 100%;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
   --mono: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
 }
@@ -308,6 +308,8 @@ pre {
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: #fff;
@@ -319,7 +321,7 @@ pre {
 }
 .sample-table {
   width: 100%;
-  min-width: 100%;
+  min-width: 1800px;
   border-collapse: collapse;
   table-layout: auto;
 }
@@ -336,6 +338,8 @@ pre {
   text-align: left;
   color: var(--green-dark);
   font-size: 0.82rem;
+  white-space: nowrap;
+  word-break: normal;
 }
 .sample-cell {
   width: 100%;
@@ -957,7 +961,7 @@ pre {
 
   .card { padding: 58px 0; }
   .two-col { grid-template-columns: 1fr; }
-  .sample-table { min-width: 980px; }
+  .sample-table { min-width: 1800px; }
   .grump-cta { padding: 24px 20px; }
 }
 
