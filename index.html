@@ -191,15 +191,6 @@ cd AMT29-analysis</pre>
         </div>
       </div>
 
-      <div class="code-panel">
-        <div class="code-panel__hint">Activate the Snakemake environment and confirm it is available before running the workflow.</div>
-        <div class="code-panel__bar">
-          <span>Check Snakemake installation</span>
-          <button class="copy-btn" data-copy="#snakemake-check-code">Copy</button>
-        </div>
-        <pre id="snakemake-check-code">conda activate snakemake
-snakemake --version || echo "Snakemake is not installed"</pre>
-      </div>
     </section>
 
     <section class="card" id="config">
@@ -527,20 +518,16 @@ snakemake --version || echo "Snakemake is not installed"</pre>
         <pre id="extractConfigCode">unzip universal-amplicon-config.zip</pre>
       </div>
 
-      <div class="code-panel">
-        <div class="code-panel__hint">After Snakemake finishes, download the <code>Results-Export/</code> folder. It contains the formatted data tables and this self-contained HTML report for a quick review of parameters, read quality and losses, composition, taxa, and internal-standard figures.</div>
-        <div class="code-panel__bar">
-          <span>Final pipeline report</span>
-          <button class="copy-btn" data-copy="#reportPath">Copy</button>
-        </div>
-        <pre id="reportPath">Results-Export/AMT29.pipeline-report.html</pre>
-      </div>
-
       <h3>Run the pipeline</h3>
-      <p>From the main project folder, activate the Snakemake environment and run the included bash script:</p>
+      <p>
+        Once you have downloaded the configuration package, transferred it to the cloned project, and extracted it
+        so that the <code>config/</code> directory is in the main project folder, activate the Snakemake environment
+        and run the included <code>run_snakemake.sh</code> script.
+      </p>
       <div class="code-panel">
+        <div class="code-panel__hint">Run these commands from the main directory of your cloned project.</div>
         <div class="code-panel__bar">
-          <span>Start Snakemake</span>
+          <span>Run run_snakemake.sh</span>
           <button class="copy-btn" data-copy="#runPipelineCode">Copy</button>
         </div>
         <pre id="runPipelineCode">conda activate snakemake
@@ -550,6 +537,15 @@ bash run_snakemake.sh</pre>
         The included script is intentionally minimal. Depending on your HPC system, you may need to add the appropriate
         executor and resource allocation settings, such as jobs, CPUs, memory, runtime, account, or partition.
       </p>
+
+      <div class="code-panel">
+        <div class="code-panel__hint">After Snakemake finishes, download the <code>Results-Export/</code> folder. It contains the formatted data tables and this self-contained HTML report for a quick review of parameters, read quality and losses, composition, taxa, and internal-standard figures.</div>
+        <div class="code-panel__bar">
+          <span>Final pipeline report</span>
+          <button class="copy-btn" data-copy="#reportPath">Copy</button>
+        </div>
+        <pre id="reportPath">Results-Export/AMT29.pipeline-report.html</pre>
+      </div>
 
       <div class="grump-cta">
         <h3>Explore your ASV in GRUMP</h3>
