@@ -6,7 +6,7 @@
   <title>Universal Amplicon Pipeline Tutorial</title>
   <link rel="stylesheet" href="css/style.css?v=full-width-note-20260804" />
   <script defer src="js/jszip.min.js"></script>
-  <script defer src="js/script.js?v=project-package-name-20260804"></script>
+  <script defer src="js/script.js?v=project-config-name-20260804"></script>
 </head>
 <body>
   <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
@@ -482,7 +482,7 @@ cd AMT29-analysis</pre>
       <div class="two-col">
         <div class="field-group">
           <label for="transferInput">Input package path</label>
-          <input id="transferInput" type="text" value="~/Downloads/AMT29-analysis.zip" />
+          <input id="transferInput" type="text" value="~/Downloads/AMT29-analysis-config.zip" />
           <div class="hint">Enter the path to the downloaded configuration ZIP on your computer.</div>
         </div>
         <div class="field-group">
@@ -498,7 +498,7 @@ cd AMT29-analysis</pre>
           <span>Copy the configuration package</span>
           <button class="copy-btn" data-copy="#uploadConfigCode">Copy</button>
         </div>
-        <pre id="uploadConfigCode">scp ~/Downloads/AMT29-analysis.zip &lt;OUTPUT_DESTINATION&gt;</pre>
+        <pre id="uploadConfigCode">scp ~/Downloads/AMT29-analysis-config.zip &lt;OUTPUT_DESTINATION&gt;</pre>
       </div>
 
       <p>
@@ -515,7 +515,7 @@ cd AMT29-analysis</pre>
           <span>Extract the configuration package</span>
           <button class="copy-btn" data-copy="#extractConfigCode">Copy</button>
         </div>
-        <pre id="extractConfigCode">unzip AMT29-analysis.zip</pre>
+        <pre id="extractConfigCode">unzip AMT29-analysis-config.zip</pre>
       </div>
 
       <h3>Run the pipeline</h3>

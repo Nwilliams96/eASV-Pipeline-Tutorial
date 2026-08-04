@@ -41,7 +41,7 @@ function shellArgument(value) {
 
 function projectZipFilename() {
   const projectName = $("#projectName").value.trim() || "my-eASV-project";
-  return `${projectName}.zip`;
+  return `${projectName}-config.zip`;
 }
 
 function syncProjectPackageNames() {
