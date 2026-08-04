@@ -44,7 +44,7 @@
         and the metadata needed to generate the final files.
       </p>
       <p>
-        Use the sections below in order, then download the generated <code>config/</code> folder when you are finished.
+        Use the sections below in order, then download the generated setup package when you are finished.
       </p>
 
       <div class="preamble">
@@ -143,42 +143,61 @@
       <div class="section-kicker">Step 1 • Getting started</div>
       <h2>Repository and software setup</h2>
       <p>
-        First clone the repository that contains the pipeline. You will also need Git, Conda, and Snakemake.
+        First choose a folder name for this analysis, then clone the pipeline into that folder. Use a new name for
+        each run so its configuration, logs, and results stay together. You will also need Git, Conda, and Snakemake.
+      </p>
+
+      <h3>Install the requirements</h3>
+      <p>
+        Install <a class="requirement-link" href="https://git-scm.com/downloads" target="_blank" rel="noopener">Git</a> and
+        <a class="requirement-link" href="https://docs.conda.io/projects/conda/en/stable/user-guide/install/" target="_blank" rel="noopener">Conda</a>
+        before continuing. The
+        <a class="requirement-link" href="https://snakemake.readthedocs.io/en/latest/getting_started/installation.html" target="_blank" rel="noopener">official Snakemake installation guide</a>
+        recommends a Conda-based installation. Administrator access is not normally required when Conda is installed in your user directory.
       </p>
 
       <div class="code-panel">
-        <div class="code-panel__hint">Check whether Git is already installed on your machine before you try to clone the repository.</div>
+        <div class="code-panel__hint">After Conda is available, create the small controller environment used to launch the workflow. The pipeline-specific environments are created automatically during the first run.</div>
         <div class="code-panel__bar">
-          <span>Check Git installation</span>
-          <button class="copy-btn" data-copy="#git-check-code">Copy</button>
+          <span>Install Snakemake</span>
+          <button class="copy-btn" data-copy="#install-code">Copy</button>
         </div>
-        <pre id="git-check-code">git --version || echo "Git is not installed"</pre>
+        <pre id="install-code">conda create --name snakemake --channel conda-forge --channel bioconda snakemake
+conda activate snakemake
+snakemake --version</pre>
+      </div>
+
+      <div class="field-group">
+        <label for="projectName">Project folder name</label>
+        <input id="projectName" type="text" value="AMT29-analysis" pattern="[A-Za-z0-9._-]+" />
+        <div class="hint">Use letters, numbers, periods, underscores, or hyphens. The clone command below updates automatically.</div>
       </div>
 
       <div class="code-panel">
-        <div class="code-panel__hint">Clone the repository that contains the pipeline and move into the Snakemake directory to prepare for configuration.</div>
+        <div class="code-panel__hint">For the test run, clone Nathan’s private repository from the current development branch using your configured GitHub SSH access.</div>
         <div class="code-panel__bar">
           <span>Clone the pipeline repository</span>
           <button class="copy-btn" data-copy="#clone-code">Copy</button>
         </div>
-        <pre id="clone-code">git clone https://github.com/jcmcnch/eASV-pipeline-for-515Y-926R.git
-cd eASV-pipeline-for-515Y-926R/snakemake</pre>
+        <pre id="clone-code">git clone --branch codex/config-tutorial-integration git@github.com:Nwilliams96/515FY-926R-snakemake-NW-edits.git AMT29-analysis
+cd AMT29-analysis</pre>
       </div>
 
       <div class="code-panel">
-        <div class="code-panel__hint">Check whether Snakemake is already installed so you can run the workflow later.</div>
+        <div class="code-panel__hint">Activate the Snakemake environment and confirm it is available before running the workflow.</div>
         <div class="code-panel__bar">
           <span>Check Snakemake installation</span>
           <button class="copy-btn" data-copy="#snakemake-check-code">Copy</button>
         </div>
-        <pre id="snakemake-check-code">snakemake --version || echo "Snakemake is not installed"</pre>
+        <pre id="snakemake-check-code">conda activate snakemake
+snakemake --version || echo "Snakemake is not installed"</pre>
       </div>
     </section>
 
     <section class="card" id="config">
       <div class="section-kicker">Step 2 • Config</div>
       <h2>Config.yml</h2>
-      <p>Fill these fields to generate the config.yaml file that will be uploaded into the Snakemake directory.</p>
+      <p>Fill these fields to generate the <code>config/config.yml</code> file used by the Snakemake workflow.</p>
 
       <div class="panel-grid">
         <div class="field-group">
@@ -188,18 +207,19 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
 
         <div class="toggle-row">
           <input id="haveDatabases" type="checkbox" checked />
-          <label for="haveDatabases">I already have the database downloaded and trained</label>
+          <label for="haveDatabases">A complete shared database is already downloaded and trained</label>
         </div>
 
         <div id="dbBlock" class="field-group">
-          <label for="database_dir">Database directory</label>
-          <input id="database_dir" type="text" value="/project2/fuhrman_1138/eASV-pipeline-for-515Y-926R-inworks/snakemake/databases" />
+          <label for="database_dir">Shared database directory</label>
+          <input id="database_dir" type="text" value="../eASV-databases" />
+          <div class="hint">Keep this outside the project clone. If the box above is unchecked, the workflow builds the databases here; if checked, it reuses the completed databases here.</div>
         </div>
 
         <div class="field-group">
           <label for="rawdatadir">Raw data location</label>
           <input id="rawdatadir" type="text" value="/project2/fuhrman_1138/GRUMP/version-2/AMT29-DNA/00-raw" />
-          <div class="hint">Use the correct path. A trailing slash can cause errors in some setups.</div>
+          <div class="hint">Enter the directory containing the FASTQ files. A trailing slash is optional.</div>
         </div>
 
         <div class="two-col">
@@ -219,19 +239,21 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
         </div>
 
         <div id="intstdBlock" class="stack">
+          <div class="hint">Enter each internal standard’s name here. These exact names become the <code>&lt;name&gt;_ng</code> sample columns and are printed in the recovery-plot legend and correction-method labels.</div>
           <div class="two-col">
             <div class="field-group">
-              <label for="intstd1">Internal standard 1</label>
-              <input id="intstd1" type="text" value="BP" />
+              <label for="intstd1">Internal standard 1 name (shown on figures)</label>
+              <input id="intstd1" type="text" value="ISD_1" />
             </div>
             <div class="field-group">
-              <label for="intstd2">Internal standard 2</label>
-              <input id="intstd2" type="text" value="DR" />
+              <label for="intstd2">Internal standard 2 name (shown on figures)</label>
+              <input id="intstd2" type="text" value="ISD_2" />
             </div>
           </div>
           <div class="field-group">
-            <label for="intstd3">Internal standard 3</label>
-            <input id="intstd3" type="text" value="TT" />
+            <label for="intstd3">Internal standard 3 name (shown on figures)</label>
+            <input id="intstd3" type="text" value="ISD_3" />
+            <div class="hint">Replace these placeholders with your own standard names using letters, numbers, periods, underscores, or hyphens. The same names will be used in the sample columns, internal-standard table, correction plots, and report.</div>
           </div>
         </div>
 
@@ -266,10 +288,6 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
           <input id="qiime2version" type="text" value="../envs/qiime2-amplicon-ubuntu-2024-5-conda.yml" />
         </div>
 
-        <div class="field-group">
-          <label for="SILVAversion">SILVAversion</label>
-          <input id="SILVAversion" type="text" value="138.1" />
-        </div>
       </div>
 
       <div class="validation-card" id="validationCard">
@@ -283,12 +301,12 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
         aria-expanded="false"
         aria-controls="configPreviewPanel"
         data-preview-target="configPreviewPanel"
-      >Preview config.yaml</button>
+      >Preview config.yml</button>
 
       <div class="code-panel hidden" id="configPreviewPanel">
-        <div class="code-panel__hint">Preview the generated config.yaml file so you can verify the values before downloading the package.</div>
+        <div class="code-panel__hint">Preview the generated config.yml file so you can verify the values before downloading the package.</div>
         <div class="code-panel__bar">
-          <span>config.yaml preview</span>
+          <span>config.yml preview</span>
           <button class="copy-btn" data-copy="#configPreview">Copy</button>
         </div>
         <pre id="configPreview"></pre>
@@ -323,9 +341,9 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
               <th>Longitude [degrees_east]</th>
               <th>Latitude [degrees_north]</th>
               <th>time</th>
-              <th>BP_ng</th>
-              <th>DR_ng</th>
-              <th>TT_ng</th>
+              <th data-intstd-column>ISD_1_ng</th>
+              <th data-intstd-column>ISD_2_ng</th>
+              <th data-intstd-column>ISD_3_ng</th>
               <th>internal_std_normalization_factor</th>
               <th>units</th>
             </tr>
@@ -337,7 +355,11 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
       <div class="actions">
         <button class="primary" id="addSampleBtn" type="button">+ Add sample row</button>
         <button class="secondary" id="removeSampleBtn" type="button">Remove last row</button>
+        <button class="secondary" id="downloadSampleCsvBtn" type="button">Download CSV template</button>
+        <button class="secondary" id="uploadSampleCsvBtn" type="button">Upload completed CSV</button>
+        <input class="hidden" id="sampleCsvUpload" type="file" accept=".csv,text/csv" />
       </div>
+      <p id="sampleCsvStatus" class="small-muted">The uploaded CSV fills this table; the final configuration download still contains the required <code>config/samples.tsv</code>.</p>
 
       <button
         class="secondary preview-toggle"
@@ -397,7 +419,7 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
       <div class="code-panel hidden" id="ampliconPreviewPanel">
         <div class="code-panel__hint">Preview the amplicon concentrations file to confirm the 16S and 18S values before export.</div>
         <div class="code-panel__bar">
-          <span>prok_and_euk_SSU_amplicon_concentrations.tsv preview</span>
+          <span>bioanalyzer.tsv preview</span>
           <button class="copy-btn" data-copy="#ampliconPreview">Copy</button>
         </div>
         <pre id="ampliconPreview"></pre>
@@ -407,11 +429,9 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
     <section class="card" id="standards">
       <div class="section-kicker">Step 5 • Internal standards</div>
       <h2>Internal Standards</h2>
-      <p>Add as many internal standards as needed. Each row can hold the ID, copy number, genome length, and a full 16S sequence.</p>
+      <p>The current correction workflow uses exactly three internal standards. Their IDs come from Step 2; enter the copy number, genome length, and complete 16S sequence for each one.</p>
 
       <div id="standardsWrap" class="standards-wrap"></div>
-
-      <button class="primary" id="addStandardBtn" type="button">+ Add internal standard</button>
 
       <button
         class="secondary preview-toggle"
@@ -419,11 +439,11 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
         aria-expanded="false"
         aria-controls="standardsPreviewPanel"
         data-preview-target="standardsPreviewPanel"
-      >Preview internal_standards.tsv</button>
+      >Preview internal_stds.tsv</button>
 
       <div class="code-panel hidden" id="standardsPreviewPanel">
         <div class="code-panel__bar">
-          <span>internal_standards.tsv preview</span>
+          <span>internal_stds.tsv preview</span>
           <button class="copy-btn" data-copy="#standardsPreview">Copy</button>
         </div>
         <pre id="standardsPreview"></pre>
@@ -441,10 +461,16 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
           <button class="copy-btn" data-copy="#folderPreview">Copy</button>
         </div>
         <pre id="folderPreview">config/
-  config.yaml
+  README.md
+  config.yml
   samples.tsv
-  prok_and_euk_SSU_amplicon_concentrations.tsv
-  internal_standards.tsv</pre>
+  bioanalyzer.tsv
+  internal_stds.tsv  # included when internal standards are enabled
+  schemas/
+    config.schema.yml
+    samples.schema.yml
+  setup-scripts/
+    setup-analysis-dir.sh</pre>
       </div>
 
       <div class="actions">
@@ -452,8 +478,149 @@ cd eASV-pipeline-for-515Y-926R/snakemake</pre>
         <button class="secondary" id="copyCommandsBtn" type="button">Copy terminal commands</button>
       </div>
 
-      <p id="exportStatus" class="small-muted">Your package will include the filled config files inside a <code>config/</code> folder.</p>
+      <p id="exportStatus" class="small-muted">Your package will contain one complete <code>config/</code> folder, including the README, schemas, and setup script.</p>
+
+      <div class="code-panel">
+        <div class="code-panel__hint">Run this command in Terminal on your own computer. Replace the username and parent-directory placeholders; the project folder name updates from Step 1.</div>
+        <div class="code-panel__bar">
+          <span>Upload the package from Downloads to CARC</span>
+          <button class="copy-btn" data-copy="#uploadConfigCode">Copy</button>
+        </div>
+        <pre id="uploadConfigCode">scp ~/Downloads/universal-amplicon-config.zip &lt;USC_USERNAME&gt;@hpc-transfer1.usc.edu:&lt;FULL_PATH_TO_PROJECT_PARENT&gt;/AMT29-analysis/</pre>
+      </div>
+
+      <p>
+        If you prefer a graphical file-transfer program, upload the ZIP to the same project directory using
+        <a class="requirement-link" href="https://cyberduck.io/download/" target="_blank" rel="noopener">Cyberduck</a>
+        or
+        <a class="requirement-link" href="https://filezilla-project.org/" target="_blank" rel="noopener">FileZilla</a>.
+        Connect with SFTP using <code>hpc-transfer1.usc.edu</code> and your USC username.
+      </p>
+
+      <div class="code-panel">
+        <div class="code-panel__hint">After the ZIP reaches CARC, run this from inside the cloned project folder to create its <code>config/</code> directory.</div>
+        <div class="code-panel__bar">
+          <span>Extract the configuration package on CARC</span>
+          <button class="copy-btn" data-copy="#extractConfigCode">Copy</button>
+        </div>
+        <pre id="extractConfigCode">unzip universal-amplicon-config.zip</pre>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-panel__hint">After Snakemake finishes, download the <code>Results-Export/</code> folder. It contains the formatted data tables and this self-contained HTML report for a quick review of parameters, read quality and losses, composition, taxa, and internal-standard figures.</div>
+        <div class="code-panel__bar">
+          <span>Final pipeline report</span>
+          <button class="copy-btn" data-copy="#reportPath">Copy</button>
+        </div>
+        <pre id="reportPath">Results-Export/AMT29.pipeline-report.html</pre>
+      </div>
+
+      <h3>Run the pipeline</h3>
+      <p>From the main project folder, activate the Snakemake environment and run the included bash script:</p>
+      <div class="code-panel">
+        <div class="code-panel__bar">
+          <span>Start Snakemake</span>
+          <button class="copy-btn" data-copy="#runPipelineCode">Copy</button>
+        </div>
+        <pre id="runPipelineCode">conda activate snakemake
+bash run_snakemake.sh</pre>
+      </div>
+      <p class="small-muted">
+        The included script is intentionally minimal. Depending on your HPC system, you may need to add the appropriate
+        executor and resource allocation settings, such as jobs, CPUs, memory, runtime, account, or partition.
+      </p>
     </section>
   </main>
+
+  <script id="package-readme" type="text/plain">
+## Workflow overview
+
+This workflow is a best-practice workflow for `<detailed description>`.
+The workflow is built using [snakemake](https://snakemake.readthedocs.io/en/stable/) and consists of the following steps:
+
+1. Download genome reference from NCBI
+2. Validate downloaded genome (`python` script)
+3. Simulate short read sequencing data on the fly (`dwgsim`)
+4. Check quality of input read data (`FastQC`)
+5. Collect statistics from tool output (`MultiQC`)
+
+## Running the workflow
+
+### Input data
+
+This template workflow creates artificial sequencing data in `*.fastq.gz` format.
+It does not contain actual input data.
+The simulated input files are nevertheless created based on a mandatory table linked in the `config.yml` file (default: `.test/samples.tsv`).
+The sample sheet has the following layout:
+
+| sample  | condition | replicate | read1                      | read2                      |
+| ------- | --------- | --------- | -------------------------- | -------------------------- |
+| sample1 | wild_type | 1         | sample1.bwa.read1.fastq.gz | sample1.bwa.read2.fastq.gz |
+| sample2 | wild_type | 2         | sample2.bwa.read1.fastq.gz | sample2.bwa.read2.fastq.gz |
+
+### Parameters
+
+This table lists all parameters that can be used to run the workflow.
+
+| parameter          | type | details                               | default                        |
+| ------------------ | ---- | ------------------------------------- | ------------------------------ |
+| **samplesheet**    |      |                                       |                                |
+| path               | str  | path to samplesheet, mandatory        | "config/samples.tsv"           |
+| **get_genome**     |      |                                       |                                |
+| ncbi_ftp           | str  | link to a genome on NCBI's FTP server | link to _S. cerevisiae_ genome |
+| **simulate_reads** |      |                                       |                                |
+| read_length        | num  | length of target reads in bp          | 100                            |
+| read_number        | num  | number of total reads to be simulated | 10000                          |
+  </script>
+
+  <script id="package-config-schema" type="text/plain">
+$schema: "https://json-schema.org/draft/2020-12/schema"
+description: main configuration schema for the workflow
+properties:
+  samplesheet:
+    type: string
+    description: path to sample-sheet TSV file
+
+required:
+  - samplesheet
+  </script>
+
+  <script id="package-samples-schema" type="text/plain">
+$schema: "https://json-schema.org/draft/2020-12/schema"
+description: entries for the sample sheet
+properties:
+  sample:
+    type: string
+    description: sample name/identifier
+
+required:
+  - sample
+  </script>
+
+  <script id="package-setup-script" type="text/plain">
+#!/bin/bash -i
+
+if [[ ${#1} -eq 0 ]] ; then
+    echo 'Please enter a memorable and informative name for your project as an argument after this script < e.g. config/setup-scripts/setup-analysis-dir.sh EXAMPLENAME > (make sure the name does not include any spaces - use dashes or underscores instead). This name will be used to create an analysis directory and will be appended to output files.'
+    exit 0
+fi
+
+if [[ ! ${#1} -eq 0 ]] ; then
+	echo "An analysis directory has been created for you at /home/$USER/GRUMP-snakemake-pipeline/$1 . It contains all the scripts needed to run the pipeline. The only things you need to do now are: 1) Modify the config.yml and samples.tsv to allow it to find your input files, use the appropriate primers, choose database versions, etc 2) Add metadata as a separate file, 3) Add bioanalyzer correction info (optional, see documentation), 4) Add internal standard info (optional, see documentation). Important note: The pipeline assumes your input files are demultiplexed fastq.gz files with the primers still attached. Filenames are determined by the combination of the variables \$rawdatadir, \$R1file_ending, \$R2file_ending, and the sample column in the file \"samples.tsv\", so be sure everything matches."
+fi
+
+studyName=$1
+
+studyDir=/home/$USER/GRUMP-snakemake-pipeline/$studyName
+
+mkdir -p $studyDir
+
+cp -r config $studyDir
+cp -r snakemake $studyDir
+cp -r workflow $studyDir
+cp README.md $studyDir
+
+sed -i "s/tutorial/${studyName}/" $studyDir/config/config.yml
+  </script>
 </body>
 </html>
