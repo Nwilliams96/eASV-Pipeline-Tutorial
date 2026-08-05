@@ -1,7 +1,6 @@
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const PIPELINE_REPOSITORY = "git@github.com:Nwilliams96/515FY-926R-snakemake-NW-edits.git";
-const PIPELINE_BRANCH = "codex/config-tutorial-integration";
 const SILVA_VERSION = "138.1";
 let lastSuggestedTransferInput = "";
 const SAMPLE_FIELD_KEYS = [
@@ -20,7 +19,7 @@ function escapeAttribute(value) {
 function projectCommands(includeRun = false) {
   const projectName = $("#projectName").value.trim() || "my-eASV-project";
   const commands = [
-    `git clone --branch ${PIPELINE_BRANCH} ${PIPELINE_REPOSITORY} ${projectName}`,
+    `git clone ${PIPELINE_REPOSITORY} ${projectName}`,
     `cd ${projectName}`
   ];
   if (includeRun) {
