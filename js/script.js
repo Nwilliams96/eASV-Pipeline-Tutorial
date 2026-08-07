@@ -250,6 +250,50 @@ function markPrefilled() {
   });
 }
 
+function dada2ConfigLines() {
+  return [
+    `dada2:`,
+    `  prokaryotes:`,
+    `    max_ee_f: ${$("#prokMaxEeF").value.trim()}`,
+    `    max_ee_r: ${$("#prokMaxEeR").value.trim()}`,
+    `    trunc_q: ${$("#prokTruncQ").value.trim()}`,
+    `    min_overlap: ${$("#prokMinOverlap").value.trim()}`,
+    `    pooling_method: "${$("#prokPooling").value}"`,
+    `    chimera_method: "${$("#prokChimera").value}"`,
+    `    min_fold_parent_over_abundance: ${$("#prokMinFold").value.trim()}`,
+    `    n_reads_learn: ${$("#prokNReadsLearn").value.trim()}`,
+    `  eukaryotes:`,
+    `    max_ee: ${$("#eukMaxEe").value.trim()}`,
+    `    trunc_q: ${$("#eukTruncQ").value.trim()}`,
+    `    pooling_method: "${$("#eukPooling").value}"`,
+    `    chimera_method: "${$("#eukChimera").value}"`,
+    `    min_fold_parent_over_abundance: ${$("#eukMinFold").value.trim()}`,
+    `    n_reads_learn: ${$("#eukNReadsLearn").value.trim()}`
+  ];
+}
+
+function validDada2Settings() {
+  const numberAtLeast = (id, minimum) => {
+    const value = Number($(id).value);
+    return Number.isFinite(value) && value >= minimum;
+  };
+  const integerAtLeast = (id, minimum) =>
+    numberAtLeast(id, minimum) && Number.isInteger(Number($(id).value));
+
+  return numberAtLeast("#prokMaxEeF", 0)
+    && numberAtLeast("#prokMaxEeR", 0)
+    && integerAtLeast("#prokTruncQ", 0)
+    && integerAtLeast("#prokMinOverlap", 4)
+    && numberAtLeast("#prokMinFold", 1)
+    && integerAtLeast("#prokNReadsLearn", 1)
+    && numberAtLeast("#eukMaxEe", 0)
+    && integerAtLeast("#eukTruncQ", 0)
+    && numberAtLeast("#eukMinFold", 1)
+    && integerAtLeast("#eukNReadsLearn", 1)
+    && integerAtLeast("#truncR1", 0)
+    && integerAtLeast("#truncR2", 0);
+}
+
 function buildConfigPreview() {
   const studyName = $("#studyName").value.trim();
   const useDb = $("#haveDatabases").checked;
@@ -285,6 +329,8 @@ function buildConfigPreview() {
   parts.push(`trunclens:`);
   parts.push(`  truncR1: ${truncR1}`);
   parts.push(`  truncR2: ${truncR2}`);
+  parts.push(``);
+  parts.push(...dada2ConfigLines());
   parts.push(``);
   parts.push(`fwdPrimer: "${fwdPrimer}"`);
   parts.push(`revPrimer: "${revPrimer}"`);
@@ -326,6 +372,7 @@ function buildValidation() {
     { label: "Forward primer entered", ok: $("#fwdPrimer").value.trim().length > 0 },
     { label: "Reverse primer entered", ok: $("#revPrimer").value.trim().length > 0 },
     { label: "QIIME 2 environment entered", ok: $("#qiime2version").value.trim().length > 0 },
+    { label: "DADA2 settings are valid", ok: validDada2Settings() },
     { label: "Sample table present", ok: $$("#sampleBody tr").length > 0 },
     { label: "All configured internal standards are complete", ok: !$("#intstdToggle").checked || standardsReady }
   ];
@@ -477,6 +524,10 @@ function bindEvents() {
       }
       updateAll();
     }
+  });
+
+  document.body.addEventListener("change", (e) => {
+    if (e.target.matches("select")) updateAll();
   });
 
   document.body.addEventListener("click", async (e) => {
@@ -673,6 +724,8 @@ function configToYAML() {
     'trunclens:',
     `  truncR1: ${$("#truncR1").value.trim()}`,
     `  truncR2: ${$("#truncR2").value.trim()}`,
+    '',
+    ...dada2ConfigLines(),
     '',
     `fwdPrimer: "${$("#fwdPrimer").value.trim()}"`,
     `revPrimer: "${$("#revPrimer").value.trim()}"`,

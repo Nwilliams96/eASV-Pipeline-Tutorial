@@ -6,7 +6,7 @@
   <title>Universal Amplicon Pipeline Tutorial</title>
   <link rel="stylesheet" href="css/style.css?v=full-width-note-20260804" />
   <script defer src="js/jszip.min.js"></script>
-  <script defer src="js/script.js?v=config-touch-20260807"></script>
+  <script defer src="js/script.js?v=dada2-controls-20260807"></script>
 </head>
 <body>
   <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
@@ -251,14 +251,136 @@ cd AMT29-analysis</pre>
           <div class="hint">Use letters, numbers, periods, underscores, or hyphens. The same ordered list is used in the sample columns, internal-standard table, correction plots, and report.</div>
         </div>
 
+        <div class="stack">
+          <h3>DADA2 read-length controls</h3>
+          <p class="small-muted">These lengths are used for paired 16S denoising and to trim each 18S read before R1 and R2 are concatenated. The presets are the pipeline's established values.</p>
+        </div>
+
         <div class="two-col">
           <div class="field-group">
             <label for="truncR1">Forward trim length</label>
-            <input id="truncR1" type="number" value="220" />
+            <input id="truncR1" type="number" min="0" step="1" value="220" />
+            <div class="hint">Number of forward-read bases retained after primer removal. Longer values preserve sequence but may retain a poor-quality tail; reads shorter than this are discarded.</div>
           </div>
           <div class="field-group">
             <label for="truncR2">Reverse trim length</label>
-            <input id="truncR2" type="number" value="180" />
+            <input id="truncR2" type="number" min="0" step="1" value="180" />
+            <div class="hint">Number of reverse-read bases retained. For paired 16S, the retained forward and reverse reads must still overlap sufficiently to merge.</div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <h3>16S DADA2 controls (paired reads)</h3>
+          <aside class="note">For testing Prochlorococcus recovery, compare the DADA2 statistics before changing several settings at once. Expected-error filtering, pair merging, and chimera removal are distinct loss points in the final report.</aside>
+        </div>
+
+        <div class="two-col">
+          <div class="field-group">
+            <label for="prokMaxEeF">Maximum expected errors — forward</label>
+            <input id="prokMaxEeF" type="number" min="0" step="0.1" value="2" />
+            <div class="hint">Forward reads above this expected-error total are discarded. Raising it retains more lower-quality reads but can increase erroneous ASVs.</div>
+          </div>
+          <div class="field-group">
+            <label for="prokMaxEeR">Maximum expected errors — reverse</label>
+            <input id="prokMaxEeR" type="number" min="0" step="0.1" value="2" />
+            <div class="hint">Reverse-read equivalent of the forward threshold. Reverse reads often decline in quality sooner, so inspect filtering and merging losses when adjusting it.</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field-group">
+            <label for="prokTruncQ">Quality truncation threshold</label>
+            <input id="prokTruncQ" type="number" min="0" step="1" value="2" />
+            <div class="hint">A read is cut at the first base with a Phred score at or below this value. Raising it trims sooner and may cause more reads to fail the selected lengths.</div>
+          </div>
+          <div class="field-group">
+            <label for="prokMinOverlap">Minimum pair overlap</label>
+            <input id="prokMinOverlap" type="number" min="4" step="1" value="12" />
+            <div class="hint">Minimum matching overlap required to merge denoised forward and reverse reads. Lowering it may rescue pairs but reduces merging confidence.</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field-group">
+            <label for="prokPooling">Pooling method</label>
+            <select id="prokPooling">
+              <option value="independent" selected>Independent (current preset)</option>
+              <option value="pseudo">Pseudo-pooling</option>
+            </select>
+            <div class="hint">Independent infers each sample separately. Pseudo-pooling performs a second pass informed by ASVs seen in multiple samples and can improve sensitivity to rare recurring variants, with extra compute.</div>
+          </div>
+          <div class="field-group">
+            <label for="prokChimera">Chimera method</label>
+            <select id="prokChimera">
+              <option value="consensus" selected>Consensus (current preset)</option>
+              <option value="pooled">Pooled</option>
+              <option value="none">None</option>
+            </select>
+            <div class="hint">Consensus detects chimeras per sample and combines the evidence. Pooled uses all samples together. None is useful only as a diagnostic because biological chimeras will remain.</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field-group">
+            <label for="prokMinFold">Minimum parent-abundance fold</label>
+            <input id="prokMinFold" type="number" min="1" step="0.1" value="1" />
+            <div class="hint">Potential chimera parents must be at least this many times more abundant than the tested sequence. Raising it is less aggressive and can retain more variants, including possible chimeras.</div>
+          </div>
+          <div class="field-group">
+            <label for="prokNReadsLearn">Reads used to learn errors</label>
+            <input id="prokNReadsLearn" type="number" min="1" step="1" value="1000000" />
+            <div class="hint">Number of reads used to train DADA2's error model. More reads may stabilize the model for large or diverse datasets but require more time and memory.</div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <h3>18S DADA2 controls (concatenated reads)</h3>
+          <p class="small-muted">The 18S path concatenates trimmed R1 and R2 and then runs single-end DADA2, so it has no paired-read overlap setting.</p>
+        </div>
+
+        <div class="two-col">
+          <div class="field-group">
+            <label for="eukMaxEe">Maximum expected errors</label>
+            <input id="eukMaxEe" type="number" min="0" step="0.1" value="2" />
+            <div class="hint">Concatenated reads above this expected-error total are discarded. Raising it retains more reads but can increase erroneous ASVs.</div>
+          </div>
+          <div class="field-group">
+            <label for="eukTruncQ">Quality truncation threshold</label>
+            <input id="eukTruncQ" type="number" min="0" step="1" value="0" />
+            <div class="hint">The current value of 0 disables quality-based truncation inside DADA2 because the component reads were already length-trimmed before concatenation.</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field-group">
+            <label for="eukPooling">Pooling method</label>
+            <select id="eukPooling">
+              <option value="independent" selected>Independent (current preset)</option>
+              <option value="pseudo">Pseudo-pooling</option>
+            </select>
+            <div class="hint">Pseudo-pooling can improve sensitivity to rare variants that recur across samples, but runs an additional inference pass.</div>
+          </div>
+          <div class="field-group">
+            <label for="eukChimera">Chimera method</label>
+            <select id="eukChimera">
+              <option value="consensus" selected>Consensus (current preset)</option>
+              <option value="pooled">Pooled</option>
+              <option value="none">None</option>
+            </select>
+            <div class="hint">Controls how concatenated 18S chimeras are identified. Disabling this is intended for diagnostics, not a final biological result.</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field-group">
+            <label for="eukMinFold">Minimum parent-abundance fold</label>
+            <input id="eukMinFold" type="number" min="1" step="0.1" value="1" />
+            <div class="hint">Higher values make chimera classification less aggressive and may retain both genuine low-abundance variants and unwanted chimeras.</div>
+          </div>
+          <div class="field-group">
+            <label for="eukNReadsLearn">Reads used to learn errors</label>
+            <input id="eukNReadsLearn" type="number" min="1" step="1" value="1000000" />
+            <div class="hint">Number of concatenated reads used for error-model training. Larger values increase training work and may help very large datasets.</div>
           </div>
         </div>
 
@@ -613,6 +735,29 @@ properties:
   samplesheet:
     type: string
     description: path to sample-sheet TSV file
+  dada2:
+    type: object
+    properties:
+      prokaryotes:
+        type: object
+        properties:
+          max_ee_f: {type: number, minimum: 0}
+          max_ee_r: {type: number, minimum: 0}
+          trunc_q: {type: integer, minimum: 0}
+          min_overlap: {type: integer, minimum: 4}
+          pooling_method: {type: string, enum: [independent, pseudo]}
+          chimera_method: {type: string, enum: [consensus, pooled, none]}
+          min_fold_parent_over_abundance: {type: number, minimum: 1}
+          n_reads_learn: {type: integer, minimum: 1}
+      eukaryotes:
+        type: object
+        properties:
+          max_ee: {type: number, minimum: 0}
+          trunc_q: {type: integer, minimum: 0}
+          pooling_method: {type: string, enum: [independent, pseudo]}
+          chimera_method: {type: string, enum: [consensus, pooled, none]}
+          min_fold_parent_over_abundance: {type: number, minimum: 1}
+          n_reads_learn: {type: integer, minimum: 1}
 
 required:
   - samplesheet
