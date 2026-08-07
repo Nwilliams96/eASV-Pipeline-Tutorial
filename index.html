@@ -6,7 +6,7 @@
   <title>Universal Amplicon Pipeline Tutorial</title>
   <link rel="stylesheet" href="css/style.css?v=full-width-note-20260804" />
   <script defer src="js/jszip.min.js"></script>
-  <script defer src="js/script.js?v=dada2-controls-20260807"></script>
+  <script defer src="js/script.js?v=dada2-reporting-20260807"></script>
 </head>
 <body>
   <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
@@ -276,12 +276,12 @@ cd AMT29-analysis</pre>
 
         <div class="two-col">
           <div class="field-group">
-            <label for="prokMaxEeF">Maximum expected errors — forward</label>
+            <label for="prokMaxEeF">Maximum expected errors — forward (<code>max_ee_f</code>)</label>
             <input id="prokMaxEeF" type="number" min="0" step="0.1" value="2" />
             <div class="hint">Forward reads above this expected-error total are discarded. Raising it retains more lower-quality reads but can increase erroneous ASVs.</div>
           </div>
           <div class="field-group">
-            <label for="prokMaxEeR">Maximum expected errors — reverse</label>
+            <label for="prokMaxEeR">Maximum expected errors — reverse (<code>max_ee_r</code>)</label>
             <input id="prokMaxEeR" type="number" min="0" step="0.1" value="2" />
             <div class="hint">Reverse-read equivalent of the forward threshold. Reverse reads often decline in quality sooner, so inspect filtering and merging losses when adjusting it.</div>
           </div>
@@ -340,7 +340,7 @@ cd AMT29-analysis</pre>
 
         <div class="two-col">
           <div class="field-group">
-            <label for="eukMaxEe">Maximum expected errors</label>
+            <label for="eukMaxEe">Maximum expected errors (<code>max_ee</code>)</label>
             <input id="eukMaxEe" type="number" min="0" step="0.1" value="2" />
             <div class="hint">Concatenated reads above this expected-error total are discarded. Raising it retains more reads but can increase erroneous ASVs.</div>
           </div>
