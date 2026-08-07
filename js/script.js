@@ -1,6 +1,6 @@
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-const PIPELINE_REPOSITORY = "git@github.com:Nwilliams96/515FY-926R-snakemake-NW-edits.git";
+const PIPELINE_REPOSITORY = "https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits.git";
 const SILVA_VERSION = "138.1";
 let lastSuggestedTransferInput = "";
 const SAMPLE_FIELD_KEYS = [

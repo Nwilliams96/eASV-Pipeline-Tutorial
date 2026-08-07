@@ -6,7 +6,7 @@
   <title>Universal Amplicon Pipeline Tutorial</title>
   <link rel="stylesheet" href="css/style.css?v=full-width-note-20260804" />
   <script defer src="js/jszip.min.js"></script>
-  <script defer src="js/script.js?v=project-config-name-20260804"></script>
+  <script defer src="js/script.js?v=https-clone-20260807"></script>
 </head>
 <body>
   <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
@@ -45,6 +45,8 @@
       </p>
       <p>
         Use the sections below in order, then download the generated setup package when you are finished.
+        The latest tested workflow is available in the
+        <a class="requirement-link" href="https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits" target="_blank" rel="noopener">pipeline repository on GitHub</a>.
       </p>
 
       <div class="preamble">
@@ -172,6 +174,7 @@ snakemake --version</pre>
         <h3>Clone the pipeline repository</h3>
         <p>
           Choose the name of the directory that will contain this analysis. The generated command clones the pipeline
+          from the public <a class="requirement-link" href="https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits" target="_blank" rel="noopener">pipeline repository</a>
           into a new directory with that name and then moves into it.
         </p>
         <div class="field-group">
@@ -181,12 +184,12 @@ snakemake --version</pre>
         </div>
 
         <div class="code-panel">
-          <div class="code-panel__hint">Copy and run this command from the parent directory where you want the new project directory to be created. GitHub SSH access must already be configured.</div>
+          <div class="code-panel__hint">Copy and run this command from the parent directory where you want the new project directory to be created. HTTPS cloning does not require a GitHub SSH key and is recommended when you only need to download and run the pipeline.</div>
           <div class="code-panel__bar">
             <span>Clone into your project directory</span>
             <button class="copy-btn" data-copy="#clone-code">Copy</button>
           </div>
-          <pre id="clone-code">git clone git@github.com:Nwilliams96/515FY-926R-snakemake-NW-edits.git AMT29-analysis
+          <pre id="clone-code">git clone https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits.git AMT29-analysis
 cd AMT29-analysis</pre>
         </div>
       </div>
