@@ -3,10 +3,12 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const PIPELINE_REPOSITORY = "https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits.git";
 const SILVA_VERSION = "138.1";
 let lastSuggestedTransferInput = "";
-const SAMPLE_FIELD_KEYS = [
-  "sample", "replicate", "condition", "depth", "latlon", "lon", "lat", "time",
-  "intstd1_ng", "intstd2_ng", "intstd3_ng", "norm", "units"
+const SAMPLE_PREFIX_HEADERS = [
+  "sample", "replicate", "condition", "Depth (m)", "Latitude and Longitude",
+  "Longitude [degrees_east]", "Latitude [degrees_north]", "time"
 ];
+const SAMPLE_TAIL_HEADERS = ["internal_std_normalization_factor", "units"];
+const DEFAULT_INTERNAL_STANDARDS = ["ISD_1", "ISD_2", "ISD_3"];
 
 function escapeAttribute(value) {
   return String(value ?? "")
@@ -81,40 +83,34 @@ function setVisible(id, visible) {
   el.classList.toggle("hidden", !visible);
 }
 
+function sampleCell(value) {
+  return `<td><input class="sample-cell" value="${escapeAttribute(value)}"></td>`;
+}
+
 function sampleRowHTML(data = {}, useDefaults = true) {
-  const defaults = {
-    sample: "AMT29_02",
-    replicate: "1",
-    condition: "AMT29-whole-seawater",
-    depth: "2",
-    latlon: "6.7321 S 49.0482 E",
-    lon: "49.0482",
-    lat: "-6.7321",
-    time: "2019-10-16T13:20:00",
-    intstd1_ng: "52",
-    intstd2_ng: "52",
-    intstd3_ng: "52",
-    norm: "0.66666667",
-    units: "L"
-  };
-  const empty = Object.fromEntries(Object.keys(defaults).map(key => [key, ""]));
-  const v = { ...(useDefaults ? defaults : empty), ...data };
+  const defaultPrefix = [
+    "AMT29_02", "1", "AMT29-whole-seawater", "2", "6.7321 S 49.0482 E",
+    "49.0482", "-6.7321", "2019-10-16T13:20:00"
+  ];
+  const defaultTail = ["0.66666667", "L"];
+  const standardCount = getInternalStandardIds().length;
+  const prefix = data.prefix || (useDefaults ? defaultPrefix : Array(8).fill(""));
+  const standards = data.standards || (useDefaults ? Array(standardCount).fill("52") : Array(standardCount).fill(""));
+  const tail = data.tail || (useDefaults ? defaultTail : Array(2).fill(""));
   return `
     <tr>
-      <td><input class="sample-cell" value="${escapeAttribute(v.sample)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.replicate)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.condition)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.depth)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.latlon)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.lon)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.lat)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.time)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.intstd1_ng)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.intstd2_ng)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.intstd3_ng)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.norm)}"></td>
-      <td><input class="sample-cell" value="${escapeAttribute(v.units)}"></td>
+      ${prefix.map(sampleCell).join("")}
+      ${Array.from({ length: standardCount }, (_, index) => sampleCell(standards[index] ?? "")).join("")}
+      ${tail.map(sampleCell).join("")}
     </tr>`;
+}
+
+function standardNameRowHTML(index, name = "") {
+  return `
+    <div class="standard-name-row">
+      <label for="intstd-${index}">Internal standard ${index + 1} name (shown on figures)</label>
+      <input id="intstd-${index}" class="internal-standard-name" type="text" value="${escapeAttribute(name)}" />
+    </div>`;
 }
 
 function standardRowHTML(slot, data = {}) {
@@ -128,19 +124,19 @@ function standardRowHTML(slot, data = {}) {
     <div class="standard-row" data-standard-slot="${slot}">
       <div class="field-label">Internal Standard ID: <strong class="standard-id-label"></strong></div>
       <label class="field-label">rRNA copy number
-        <input type="number" min="1" value="${v.copies}">
+        <input type="number" min="1" value="${escapeAttribute(v.copies)}">
       </label>
       <label class="field-label">Genome length in base pairs
-        <input type="number" min="1" value="${v.genome}">
+        <input type="number" min="1" value="${escapeAttribute(v.genome)}">
       </label>
       <label class="field-label">Full 16S sequence
-        <textarea placeholder="Paste the complete nucleotide sequence">${v.sequence}</textarea>
+        <textarea placeholder="Paste the complete nucleotide sequence">${escapeAttribute(v.sequence)}</textarea>
       </label>
     </div>`;
 }
 
 function getInternalStandardIds() {
-  return ["intstd1", "intstd2", "intstd3"].map(id => $(`#${id}`).value.trim());
+  return $$(".internal-standard-name").map(input => input.value.trim());
 }
 
 function getStandardsData() {
@@ -154,6 +150,74 @@ function getStandardsData() {
       seq: inputs[2].value.replace(/\s+/g, "").toUpperCase()
     };
   });
+}
+
+function captureStandardDefinitions() {
+  const ids = getInternalStandardIds();
+  return ids.map((id, index) => {
+    const row = $$(".standard-row")[index];
+    const inputs = row ? $$("input, textarea", row) : [];
+    return {
+      id,
+      copies: inputs[0]?.value.trim() || "",
+      genome: inputs[1]?.value.trim() || "",
+      sequence: inputs[2]?.value || ""
+    };
+  });
+}
+
+function renderStandardSections(standards) {
+  $("#intstdNamesWrap").innerHTML = standards
+    .map((standard, index) => standardNameRowHTML(index, standard.id))
+    .join("");
+  $("#standardsWrap").innerHTML = standards
+    .map((standard, index) => standardRowHTML(index, standard))
+    .join("");
+}
+
+function captureSampleRecords() {
+  const standardCount = getInternalStandardIds().length;
+  return $$("#sampleBody tr").map(row => {
+    const values = $$("input", row).map(input => input.value);
+    return {
+      prefix: values.slice(0, SAMPLE_PREFIX_HEADERS.length),
+      standards: values.slice(SAMPLE_PREFIX_HEADERS.length, SAMPLE_PREFIX_HEADERS.length + standardCount),
+      tail: values.slice(SAMPLE_PREFIX_HEADERS.length + standardCount)
+    };
+  });
+}
+
+function renderSampleHeader() {
+  $("#sampleHeaderRow").innerHTML = sampleHeaders()
+    .map((header, index) => `<th${index >= SAMPLE_PREFIX_HEADERS.length && index < sampleHeaders().length - SAMPLE_TAIL_HEADERS.length ? " data-intstd-column" : ""}>${escapeAttribute(header)}</th>`)
+    .join("");
+}
+
+function renderSampleRecords(records) {
+  $("#sampleBody").innerHTML = records.map(record => sampleRowHTML(record, false)).join("");
+  $("#sampleCount").value = String(records.length);
+}
+
+function changeInternalStandardCount(delta) {
+  const records = captureSampleRecords();
+  const standards = captureStandardDefinitions();
+  if (delta < 0 && standards.length <= 1) return;
+  if (delta > 0) {
+    standards.push({
+      id: `ISD_${standards.length + 1}`,
+      copies: "",
+      genome: "",
+      sequence: ""
+    });
+    records.forEach(record => record.standards.push(""));
+  } else {
+    standards.pop();
+    records.forEach(record => record.standards.pop());
+  }
+  renderStandardSections(standards);
+  renderSampleHeader();
+  renderSampleRecords(records);
+  updateAll();
 }
 
 function markPrefilled() {
@@ -175,9 +239,7 @@ function buildConfigPreview() {
   const rawdatadir = $("#rawdatadir").value.trim();
   const R1file_ending = $("#R1file_ending").value.trim();
   const R2file_ending = $("#R2file_ending").value.trim();
-  const intstd1 = $("#intstd1").value.trim();
-  const intstd2 = $("#intstd2").value.trim();
-  const intstd3 = $("#intstd3").value.trim();
+  const internalStandardIds = getInternalStandardIds();
   const truncR1 = $("#truncR1").value.trim();
   const truncR2 = $("#truncR2").value.trim();
   const fwdPrimer = $("#fwdPrimer").value.trim();
@@ -198,9 +260,7 @@ function buildConfigPreview() {
   parts.push(`use_internal_standards: ${useInternalStandards}`);
   if (useInternalStandards) {
     parts.push(`intstds:`);
-    parts.push(`  intstd1: "${intstd1}"`);
-    parts.push(`  intstd2: "${intstd2}"`);
-    parts.push(`  intstd3: "${intstd3}"`);
+    internalStandardIds.forEach(id => parts.push(`  - "${id}"`));
     parts.push(``);
   }
   parts.push(`trunclens:`);
@@ -235,8 +295,8 @@ function buildStandardsPreview() {
 function buildValidation() {
   const standards = getStandardsData();
   const ids = getInternalStandardIds();
-  const standardsReady = standards.length === 3
-    && new Set(ids).size === 3
+  const standardsReady = standards.length >= 1
+    && new Set(ids).size === ids.length
     && ids.every(id => /^[A-Za-z0-9._-]+$/.test(id))
     && standards.every(s => s.id && s.copies && s.genome && /^[ACGTRYSWKMBDHVN]+$/.test(s.seq));
   const checks = [
@@ -248,7 +308,7 @@ function buildValidation() {
     { label: "Reverse primer entered", ok: $("#revPrimer").value.trim().length > 0 },
     { label: "QIIME 2 environment entered", ok: $("#qiime2version").value.trim().length > 0 },
     { label: "Sample table present", ok: $$("#sampleBody tr").length > 0 },
-    { label: "Three internal standards are complete", ok: !$("#intstdToggle").checked || standardsReady }
+    { label: "All configured internal standards are complete", ok: !$("#intstdToggle").checked || standardsReady }
   ];
   checks.push({ label: "Ready to download", ok: checks.every(check => check.ok) });
   $("#validationList").innerHTML = checks.map(check => `<li class="${check.ok ? "ok" : "bad"}">${check.ok ? "✓" : "•"} ${check.label}</li>`).join("");
@@ -262,6 +322,9 @@ function updateAll() {
   });
   $$('[data-intstd-column]').forEach((heading, index) => {
     heading.textContent = `${ids[index] || `internal_standard_${index + 1}`}_ng`;
+  });
+  $$('[data-remove-standard]').forEach(button => {
+    button.disabled = ids.length <= 1;
   });
   buildClonePreview();
   syncProjectPackageNames();
@@ -377,6 +440,12 @@ function bindEvents() {
   $("#downloadSampleCsvBtn").addEventListener("click", downloadSampleCsv);
   $("#uploadSampleCsvBtn").addEventListener("click", () => $("#sampleCsvUpload").click());
   $("#sampleCsvUpload").addEventListener("change", uploadSampleCsv);
+  $$('[data-add-standard]').forEach(button => {
+    button.addEventListener("click", () => changeInternalStandardCount(1));
+  });
+  $$('[data-remove-standard]').forEach(button => {
+    button.addEventListener("click", () => changeInternalStandardCount(-1));
+  });
 
   document.body.addEventListener("input", (e) => {
     if (e.target.matches("input, textarea")) {
@@ -432,10 +501,7 @@ function bindEvents() {
 
 function sampleHeaders() {
   const standardHeaders = getInternalStandardIds().map(id => `${id}_ng`);
-  return [
-    "sample","replicate","condition","Depth (m)","Latitude and Longitude","Longitude [degrees_east]",
-    "Latitude [degrees_north]","time",...standardHeaders,"internal_std_normalization_factor","units"
-  ];
+  return [...SAMPLE_PREFIX_HEADERS, ...standardHeaders, ...SAMPLE_TAIL_HEADERS];
 }
 
 function sampleTableRows() {
@@ -518,32 +584,37 @@ async function uploadSampleCsv(event) {
     const rows = parseCSV(await file.text());
     if (rows.length < 2) throw new Error("The CSV needs a header and at least one sample row.");
     const headers = rows[0].map((value, index) => index === 0 ? value.replace(/^\uFEFF/, "").trim() : value.trim());
-    const expected = sampleHeaders();
-    const fixedIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 11, 12];
-    if (headers.length !== expected.length || fixedIndexes.some(index => headers[index] !== expected[index])) {
+    if (headers.length < SAMPLE_PREFIX_HEADERS.length + SAMPLE_TAIL_HEADERS.length + 1
+      || SAMPLE_PREFIX_HEADERS.some((header, index) => headers[index] !== header)
+      || SAMPLE_TAIL_HEADERS.some((header, index) => headers[headers.length - SAMPLE_TAIL_HEADERS.length + index] !== header)) {
       throw new Error("The CSV columns do not match the downloaded template.");
     }
-    const standardIds = headers.slice(8, 11).map(header => header.endsWith("_ng") ? header.slice(0, -3) : "");
-    if (new Set(standardIds).size !== 3 || standardIds.some(id => !/^[A-Za-z0-9._-]+$/.test(id))) {
-      throw new Error("The three internal-standard columns must use unique <name>_ng headers.");
+    const standardIds = headers
+      .slice(SAMPLE_PREFIX_HEADERS.length, -SAMPLE_TAIL_HEADERS.length)
+      .map(header => header.endsWith("_ng") ? header.slice(0, -3) : "");
+    if (new Set(standardIds).size !== standardIds.length || standardIds.some(id => !/^[A-Za-z0-9._-]+$/.test(id))) {
+      throw new Error("Internal-standard columns must use unique <name>_ng headers.");
     }
     const dataRows = rows.slice(1);
     if (dataRows.length > 500) throw new Error("The tutorial supports up to 500 sample rows.");
-    if (dataRows.some(values => values.length !== expected.length)) {
+    if (dataRows.some(values => values.length !== headers.length)) {
       throw new Error("Every sample row must have the same number of columns as the template.");
     }
     if (dataRows.some(values => values.some(value => /[\t\r\n]/.test(value)))) {
       throw new Error("Sample values cannot contain tabs or line breaks.");
     }
 
-    ["intstd1", "intstd2", "intstd3"].forEach((id, index) => {
-      $(`#${id}`).value = standardIds[index];
-    });
-    $("#sampleBody").innerHTML = dataRows.map(values => {
-      const data = Object.fromEntries(SAMPLE_FIELD_KEYS.map((key, index) => [key, values[index]]));
-      return sampleRowHTML(data, false);
-    }).join("");
-    $("#sampleCount").value = String(dataRows.length);
+    const existingStandards = captureStandardDefinitions();
+    const existingById = new Map(existingStandards.map(standard => [standard.id, standard]));
+    renderStandardSections(standardIds.map(id => existingById.get(id) || {
+      id, copies: "", genome: "", sequence: ""
+    }));
+    renderSampleHeader();
+    renderSampleRecords(dataRows.map(values => ({
+      prefix: values.slice(0, SAMPLE_PREFIX_HEADERS.length),
+      standards: values.slice(SAMPLE_PREFIX_HEADERS.length, -SAMPLE_TAIL_HEADERS.length),
+      tail: values.slice(-SAMPLE_TAIL_HEADERS.length)
+    })));
     $("#sampleCsvStatus").textContent = `Loaded ${dataRows.length} sample row${dataRows.length === 1 ? "" : "s"} from ${file.name}.`;
     updateAll();
   } catch (error) {
@@ -562,6 +633,7 @@ function standardsToTSV() {
 function configToYAML() {
   const useDb = $("#haveDatabases").checked;
   const useInternalStandards = $("#intstdToggle").checked;
+  const internalStandardIds = getInternalStandardIds();
   return [
     '# make sure variables below point to the right place / are named appropriately',
     '',
@@ -576,9 +648,7 @@ function configToYAML() {
     `use_internal_standards: ${useInternalStandards}`,
     ...(useInternalStandards ? [
       'intstds:',
-      `  intstd1: "${$("#intstd1").value.trim()}"`,
-      `  intstd2: "${$("#intstd2").value.trim()}"`,
-      `  intstd3: "${$("#intstd3").value.trim()}"`,
+      ...internalStandardIds.map(id => `  - "${id}"`),
       ''
     ] : []),
     'trunclens:',
@@ -663,9 +733,12 @@ function copyCommands() {
 }
 
 function init() {
+  renderStandardSections(DEFAULT_INTERNAL_STANDARDS.map(id => ({
+    id, copies: "", genome: "", sequence: ""
+  })));
+  renderSampleHeader();
   $("#sampleBody").innerHTML = sampleRowHTML();
   $("#sampleCount").value = String($$("#sampleBody tr").length);
-  $("#standardsWrap").innerHTML = [0, 1, 2].map(slot => standardRowHTML(slot)).join("");
   setVisible("qiimeBlock", $("#qiimeToggle").checked);
   const internalStandardsEnabled = $("#intstdToggle").checked;
   setVisible("intstdBlock", internalStandardsEnabled);

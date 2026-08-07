@@ -6,7 +6,7 @@
   <title>Universal Amplicon Pipeline Tutorial</title>
   <link rel="stylesheet" href="css/style.css?v=full-width-note-20260804" />
   <script defer src="js/jszip.min.js"></script>
-  <script defer src="js/script.js?v=https-clone-20260807"></script>
+  <script defer src="js/script.js?v=variable-internal-standards-20260807"></script>
 </head>
 <body>
   <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
@@ -241,22 +241,13 @@ cd AMT29-analysis</pre>
         </div>
 
         <div id="intstdBlock" class="stack">
-          <div class="hint">Enter each internal standard’s name here. These exact names become the <code>&lt;name&gt;_ng</code> sample columns and are printed in the recovery-plot legend and correction-method labels.</div>
-          <div class="two-col">
-            <div class="field-group">
-              <label for="intstd1">Internal standard 1 name (shown on figures)</label>
-              <input id="intstd1" type="text" value="ISD_1" />
-            </div>
-            <div class="field-group">
-              <label for="intstd2">Internal standard 2 name (shown on figures)</label>
-              <input id="intstd2" type="text" value="ISD_2" />
-            </div>
+          <div class="hint">Add one row for every internal standard used. These exact names become the <code>&lt;name&gt;_ng</code> sample columns and are printed in the recovery-plot legend and correction-method labels.</div>
+          <div id="intstdNamesWrap" class="standard-names-wrap"></div>
+          <div class="actions compact-actions">
+            <button class="primary" type="button" data-add-standard>+ Add internal standard</button>
+            <button class="secondary" type="button" data-remove-standard>Remove last standard</button>
           </div>
-          <div class="field-group">
-            <label for="intstd3">Internal standard 3 name (shown on figures)</label>
-            <input id="intstd3" type="text" value="ISD_3" />
-            <div class="hint">Replace these placeholders with your own standard names using letters, numbers, periods, underscores, or hyphens. The same names will be used in the sample columns, internal-standard table, correction plots, and report.</div>
-          </div>
+          <div class="hint">Use letters, numbers, periods, underscores, or hyphens. The same ordered list is used in the sample columns, internal-standard table, correction plots, and report.</div>
         </div>
 
         <div class="two-col">
@@ -334,21 +325,7 @@ cd AMT29-analysis</pre>
       <div class="table-wrap" role="region" aria-label="Scrollable sample metadata table" tabindex="0">
         <table class="sample-table">
           <thead>
-            <tr>
-              <th>sample</th>
-              <th>replicate</th>
-              <th>condition</th>
-              <th>Depth (m)</th>
-              <th>Latitude and Longitude</th>
-              <th>Longitude [degrees_east]</th>
-              <th>Latitude [degrees_north]</th>
-              <th>time</th>
-              <th data-intstd-column>ISD_1_ng</th>
-              <th data-intstd-column>ISD_2_ng</th>
-              <th data-intstd-column>ISD_3_ng</th>
-              <th>internal_std_normalization_factor</th>
-              <th>units</th>
-            </tr>
+            <tr id="sampleHeaderRow"></tr>
           </thead>
           <tbody id="sampleBody"></tbody>
         </table>
@@ -431,9 +408,14 @@ cd AMT29-analysis</pre>
     <section class="card" id="standards">
       <div class="section-kicker">Step 5 • Internal standards</div>
       <h2>Internal Standards</h2>
-      <p>The current correction workflow uses exactly three internal standards. Their IDs come from Step 2; enter the copy number, genome length, and complete 16S sequence for each one.</p>
+      <p>The IDs come from Step 2. Enter the copy number, genome length, and complete 16S sequence for every standard. Adding or removing a standard here updates Step 2 and the sample table as well.</p>
 
       <div id="standardsWrap" class="standards-wrap"></div>
+
+      <div class="actions compact-actions">
+        <button class="primary" type="button" data-add-standard>+ Add internal standard</button>
+        <button class="secondary" type="button" data-remove-standard>Remove last standard</button>
+      </div>
 
       <button
         class="secondary preview-toggle"

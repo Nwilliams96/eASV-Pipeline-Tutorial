@@ -397,6 +397,22 @@ pre {
   gap: 12px;
   margin-top: 14px;
 }
+.standard-names-wrap {
+  display: grid;
+  gap: 12px;
+}
+.standard-name-row {
+  display: grid;
+  gap: 6px;
+}
+.compact-actions {
+  margin-top: 4px;
+}
+.primary:disabled,
+.secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 .standard-row {
   display: grid;
   gap: 10px;
