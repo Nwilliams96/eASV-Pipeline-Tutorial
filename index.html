@@ -283,11 +283,6 @@ cd AMT29-analysis</pre>
 
       </div>
 
-      <div class="validation-card" id="validationCard">
-        <div class="validation-card__title">Validation</div>
-        <ul id="validationList" class="validation-list"></ul>
-      </div>
-
       <button
         class="secondary preview-toggle"
         type="button"
@@ -313,6 +308,13 @@ cd AMT29-analysis</pre>
         Enter the number of samples to create the table, then type directly or paste a block of cells copied from
         Excel, Google Sheets, or equivalent software.
       </p>
+      <aside class="note">
+        When internal standards are enabled, enter the exact mass in nanograms added to each individual sample in
+        its <code>&lt;standard-name&gt;_ng</code> column. Enter the sample-specific normalization amount in
+        <code>internal_std_normalization_factor</code>—for example, litres of water filtered or grams of soil
+        extracted—and record the corresponding unit (such as <code>L</code> or <code>g</code>) in <code>units</code>.
+        The correction divides by this factor to report abundance per chosen unit.
+      </aside>
 
       <div class="sample-count-control">
         <div class="field-group">
@@ -409,6 +411,12 @@ cd AMT29-analysis</pre>
       <div class="section-kicker">Step 5 • Internal standards</div>
       <h2>Internal Standards</h2>
       <p>The IDs come from Step 2. Enter the copy number, genome length, and complete 16S sequence for every standard. Adding or removing a standard here updates Step 2 and the sample table as well.</p>
+      <aside class="note">
+        This section describes each standard itself and is completed once per standard. The amount actually added can
+        differ among samples: enter that mass in nanograms in each sample's matching
+        <code>&lt;standard-name&gt;_ng</code> column in <code>samples.tsv</code>. The normalization factor and unit also
+        belong in the sample file; examples include volume filtered in litres or soil extracted in grams.
+      </aside>
 
       <div id="standardsWrap" class="standards-wrap"></div>
 
@@ -455,6 +463,11 @@ cd AMT29-analysis</pre>
     samples.schema.yml
   setup-scripts/
     setup-analysis-dir.sh</pre>
+      </div>
+
+      <div class="validation-card" id="validationCard">
+        <div class="validation-card__title">Final validation before download</div>
+        <ul id="validationList" class="validation-list"></ul>
       </div>
 
       <div class="actions">
