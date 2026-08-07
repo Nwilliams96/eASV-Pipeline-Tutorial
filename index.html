@@ -6,7 +6,7 @@
   <title>Universal Amplicon Pipeline Tutorial</title>
   <link rel="stylesheet" href="css/style.css?v=full-width-note-20260804" />
   <script defer src="js/jszip.min.js"></script>
-  <script defer src="js/script.js?v=internal-standard-presets-20260807"></script>
+  <script defer src="js/script.js?v=config-touch-20260807"></script>
 </head>
 <body>
   <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
@@ -510,12 +510,13 @@ cd AMT29-analysis</pre>
       </p>
 
       <div class="code-panel">
-        <div class="code-panel__hint">After the ZIP reaches its destination, run this from inside the cloned project folder to create its <code>config/</code> directory.</div>
+        <div class="code-panel__hint">After the ZIP reaches its destination, run these commands from inside the cloned project folder. The first creates the <code>config/</code> directory and the second refreshes its timestamp so Snakemake can detect it reliably.</div>
         <div class="code-panel__bar">
           <span>Extract the configuration package</span>
           <button class="copy-btn" data-copy="#extractConfigCode">Copy</button>
         </div>
-        <pre id="extractConfigCode">unzip AMT29-analysis-config.zip</pre>
+        <pre id="extractConfigCode">unzip AMT29-analysis-config.zip
+touch config</pre>
       </div>
 
       <h3>Run the pipeline</h3>
