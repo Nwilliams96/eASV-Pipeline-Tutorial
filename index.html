@@ -6,7 +6,7 @@
   <title>Universal Amplicon Pipeline Tutorial</title>
   <link rel="stylesheet" href="css/style.css?v=full-width-note-20260804" />
   <script defer src="js/jszip.min.js"></script>
-  <script defer src="js/script.js?v=variable-internal-standards-20260807"></script>
+  <script defer src="js/script.js?v=internal-standard-presets-20260807"></script>
 </head>
 <body>
   <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
@@ -241,6 +241,7 @@ cd AMT29-analysis</pre>
         </div>
 
         <div id="intstdBlock" class="stack">
+          <aside class="note">BP, DR, and TT are preloaded as a convenient starting preset using our commonly used copy numbers, genome lengths, and full 16S sequences. Every value remains editable, and standards can be renamed, removed, or added.</aside>
           <div class="hint">Add one row for every internal standard used. These exact names become the <code>&lt;name&gt;_ng</code> sample columns and are printed in the recovery-plot legend and correction-method labels.</div>
           <div id="intstdNamesWrap" class="standard-names-wrap"></div>
           <div class="actions compact-actions">
@@ -411,6 +412,7 @@ cd AMT29-analysis</pre>
       <div class="section-kicker">Step 5 • Internal standards</div>
       <h2>Internal Standards</h2>
       <p>The IDs come from Step 2. Enter the copy number, genome length, and complete 16S sequence for every standard. Adding or removing a standard here updates Step 2 and the sample table as well.</p>
+      <p class="small-muted">The BP, DR, and TT fields below are prefilled from the common preset. Review them and replace any value when your standards differ.</p>
       <aside class="note">
         This section describes each standard itself and is completed once per standard. The amount actually added can
         differ among samples: enter that mass in nanograms in each sample's matching
