@@ -74,7 +74,7 @@ function syncProjectPackageNames() {
   }
 
   lastSuggestedTransferInput = suggestedTransferInput;
-  $("#extractConfigCode").textContent = `unzip ${shellArgument(zipFilename)}\ntouch config`;
+  $("#extractConfigCode").textContent = `unzip ${shellArgument(zipFilename)}\nfind config -type f -exec touch {} +`;
 }
 
 function buildConfigUploadPreview() {
