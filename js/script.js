@@ -8,6 +8,7 @@ const SAMPLE_PREFIX_HEADERS = [
   "Longitude [degrees_east]", "Latitude [degrees_north]", "time"
 ];
 const SAMPLE_TAIL_HEADERS = ["internal_std_normalization_factor", "units"];
+let extraSampleHeaders = [];
 const DEFAULT_INTERNAL_STANDARDS = [
   {
     "id": "BP",
@@ -114,11 +115,13 @@ function sampleRowHTML(data = {}, useDefaults = true) {
   const defaultTail = ["0.66666667", "L"];
   const standardCount = getInternalStandardIds().length;
   const prefix = data.prefix || (useDefaults ? defaultPrefix : Array(8).fill(""));
+  const extra = data.extra || Array(extraSampleHeaders.length).fill("");
   const standards = data.standards || (useDefaults ? Array(standardCount).fill("52") : Array(standardCount).fill(""));
   const tail = data.tail || (useDefaults ? defaultTail : Array(2).fill(""));
   return `
     <tr>
       ${prefix.map(sampleCell).join("")}
+      ${extra.map(sampleCell).join("")}
       ${Array.from({ length: standardCount }, (_, index) => sampleCell(standards[index] ?? "")).join("")}
       ${tail.map(sampleCell).join("")}
     </tr>`;
@@ -128,7 +131,7 @@ function standardNameRowHTML(index, name = "") {
   return `
     <div class="standard-name-row">
       <label for="intstd-${index}">Internal standard ${index + 1} name (shown on figures)</label>
-      <input id="intstd-${index}" class="internal-standard-name" type="text" value="${escapeAttribute(name)}" />
+      <input id="intstd-${index}" class="internal-standard-name" type="text" value="${escapeAttribute(name)}" data-current-name="${escapeAttribute(name)}" />
     </div>`;
 }
 
@@ -196,20 +199,61 @@ function renderStandardSections(standards) {
 
 function captureSampleRecords() {
   const standardCount = getInternalStandardIds().length;
+  const standardStart = SAMPLE_PREFIX_HEADERS.length + extraSampleHeaders.length;
   return $$("#sampleBody tr").map(row => {
     const values = $$("input", row).map(input => input.value);
     return {
       prefix: values.slice(0, SAMPLE_PREFIX_HEADERS.length),
-      standards: values.slice(SAMPLE_PREFIX_HEADERS.length, SAMPLE_PREFIX_HEADERS.length + standardCount),
-      tail: values.slice(SAMPLE_PREFIX_HEADERS.length + standardCount)
+      extra: values.slice(SAMPLE_PREFIX_HEADERS.length, standardStart),
+      standards: values.slice(standardStart, standardStart + standardCount),
+      tail: values.slice(standardStart + standardCount)
     };
   });
 }
 
 function renderSampleHeader() {
+  const standardStart = SAMPLE_PREFIX_HEADERS.length + extraSampleHeaders.length;
+  const standardEnd = standardStart + getInternalStandardIds().length;
   $("#sampleHeaderRow").innerHTML = sampleHeaders()
-    .map((header, index) => `<th${index >= SAMPLE_PREFIX_HEADERS.length && index < sampleHeaders().length - SAMPLE_TAIL_HEADERS.length ? " data-intstd-column" : ""}>${escapeAttribute(header)}</th>`)
+    .map((header, index) => `<th${index >= standardStart && index < standardEnd ? " data-intstd-column" : ""}>${escapeAttribute(header)}</th>`)
     .join("");
+}
+
+function applyExtraSampleColumns() {
+  const requested = $("#extraSampleColumns").value
+    .split(",")
+    .map(value => value.trim())
+    .filter(Boolean);
+  const reserved = new Set([
+    ...SAMPLE_PREFIX_HEADERS,
+    ...SAMPLE_TAIL_HEADERS,
+    ...getInternalStandardIds().map(id => `${id}_ng`)
+  ].map(name => name.toLowerCase()));
+  const normalizedRequested = requested.map(name => name.toLowerCase());
+  const invalid = requested.filter(name =>
+    /[\t\r\n,]/.test(name) || name.endsWith("_ng") || reserved.has(name.toLowerCase())
+  );
+  if (new Set(normalizedRequested).size !== requested.length || invalid.length) {
+    $("#extraSampleColumnsStatus").textContent =
+      "Column names must be unique, cannot duplicate required columns, and cannot end in _ng.";
+    return;
+  }
+
+  const oldHeaders = [...extraSampleHeaders];
+  const records = captureSampleRecords().map(record => ({
+    ...record,
+    extra: requested.map(header => {
+      const oldIndex = oldHeaders.indexOf(header);
+      return oldIndex >= 0 ? record.extra[oldIndex] : "";
+    })
+  }));
+  extraSampleHeaders = requested;
+  renderSampleHeader();
+  renderSampleRecords(records);
+  $("#extraSampleColumnsStatus").textContent = requested.length
+    ? `Added ${requested.length} metadata column${requested.length === 1 ? "" : "s"}: ${requested.join(", ")}.`
+    : "No additional columns configured.";
+  updateAll();
 }
 
 function renderSampleRecords(records) {
@@ -506,6 +550,7 @@ function bindEvents() {
   $("#downloadSampleCsvBtn").addEventListener("click", downloadSampleCsv);
   $("#uploadSampleCsvBtn").addEventListener("click", () => $("#sampleCsvUpload").click());
   $("#sampleCsvUpload").addEventListener("change", uploadSampleCsv);
+  $("#applyExtraSampleColumnsBtn").addEventListener("click", applyExtraSampleColumns);
   $$('[data-add-standard]').forEach(button => {
     button.addEventListener("click", () => changeInternalStandardCount(1));
   });
@@ -515,6 +560,27 @@ function bindEvents() {
 
   document.body.addEventListener("input", (e) => {
     if (e.target.matches("input, textarea")) {
+      if (e.target.matches(".internal-standard-name")) {
+        const previousName = e.target.dataset.currentName || "";
+        if (e.target.value !== previousName) {
+          const index = $$(".internal-standard-name").indexOf(e.target);
+          const definition = $$(".standard-row")[index];
+          const preset = DEFAULT_INTERNAL_STANDARDS.find(item => item.id === previousName);
+          if (definition && preset) {
+            const presetValues = [preset.copies, preset.genome, preset.sequence];
+            $$("input, textarea", definition).forEach((field, fieldIndex) => {
+              const fieldValue = field.tagName === "TEXTAREA"
+                ? field.value.replace(/\s+/g, "").toUpperCase()
+                : field.value.trim();
+              if (fieldValue === presetValues[fieldIndex]) {
+                field.value = "";
+                field.classList.remove("prefilled");
+              }
+            });
+          }
+          e.target.dataset.currentName = e.target.value;
+        }
+      }
       if (typeof e.target.defaultValue === "string") {
         if (e.target.value === e.target.defaultValue && e.target.value !== "") {
           e.target.classList.add("prefilled");
@@ -571,7 +637,7 @@ function bindEvents() {
 
 function sampleHeaders() {
   const standardHeaders = getInternalStandardIds().map(id => `${id}_ng`);
-  return [...SAMPLE_PREFIX_HEADERS, ...standardHeaders, ...SAMPLE_TAIL_HEADERS];
+  return [...SAMPLE_PREFIX_HEADERS, ...extraSampleHeaders, ...standardHeaders, ...SAMPLE_TAIL_HEADERS];
 }
 
 function sampleTableRows() {
@@ -654,14 +720,34 @@ async function uploadSampleCsv(event) {
     const rows = parseCSV(await file.text());
     if (rows.length < 2) throw new Error("The CSV needs a header and at least one sample row.");
     const headers = rows[0].map((value, index) => index === 0 ? value.replace(/^\uFEFF/, "").trim() : value.trim());
-    if (headers.length < SAMPLE_PREFIX_HEADERS.length + SAMPLE_TAIL_HEADERS.length + 1
+    if (headers.length < SAMPLE_PREFIX_HEADERS.length + SAMPLE_TAIL_HEADERS.length
       || SAMPLE_PREFIX_HEADERS.some((header, index) => headers[index] !== header)
       || SAMPLE_TAIL_HEADERS.some((header, index) => headers[headers.length - SAMPLE_TAIL_HEADERS.length + index] !== header)) {
       throw new Error("The CSV columns do not match the downloaded template.");
     }
-    const standardIds = headers
-      .slice(SAMPLE_PREFIX_HEADERS.length, -SAMPLE_TAIL_HEADERS.length)
-      .map(header => header.endsWith("_ng") ? header.slice(0, -3) : "");
+    const flexibleHeaders = headers.slice(
+      SAMPLE_PREFIX_HEADERS.length, -SAMPLE_TAIL_HEADERS.length
+    );
+    const firstStandardIndex = flexibleHeaders.findIndex(header => header.endsWith("_ng"));
+    const uploadedExtraHeaders = firstStandardIndex < 0
+      ? flexibleHeaders
+      : flexibleHeaders.slice(0, firstStandardIndex);
+    const standardHeaders = firstStandardIndex < 0
+      ? []
+      : flexibleHeaders.slice(firstStandardIndex);
+    if (standardHeaders.some(header => !header.endsWith("_ng"))) {
+      throw new Error("Additional metadata columns must appear before internal-standard <name>_ng columns.");
+    }
+    const standardIds = standardHeaders.map(header => header.slice(0, -3));
+    const uploadedReservedHeaders = new Set([
+      ...SAMPLE_PREFIX_HEADERS, ...SAMPLE_TAIL_HEADERS, ...standardHeaders
+    ].map(header => header.toLowerCase()));
+    if (new Set(uploadedExtraHeaders.map(header => header.toLowerCase())).size !== uploadedExtraHeaders.length
+      || uploadedExtraHeaders.some(header =>
+        !header || header.endsWith("_ng") || uploadedReservedHeaders.has(header.toLowerCase())
+      )) {
+      throw new Error("Additional metadata column names must be non-empty and unique.");
+    }
     if (new Set(standardIds).size !== standardIds.length || standardIds.some(id => !/^[A-Za-z0-9._-]+$/.test(id))) {
       throw new Error("Internal-standard columns must use unique <name>_ng headers.");
     }
@@ -679,12 +765,24 @@ async function uploadSampleCsv(event) {
     renderStandardSections(standardIds.map(id => existingById.get(id) || {
       id, copies: "", genome: "", sequence: ""
     }));
+    extraSampleHeaders = uploadedExtraHeaders;
+    $("#extraSampleColumns").value = extraSampleHeaders.join(", ");
     renderSampleHeader();
     renderSampleRecords(dataRows.map(values => ({
       prefix: values.slice(0, SAMPLE_PREFIX_HEADERS.length),
-      standards: values.slice(SAMPLE_PREFIX_HEADERS.length, -SAMPLE_TAIL_HEADERS.length),
+      extra: values.slice(
+        SAMPLE_PREFIX_HEADERS.length,
+        SAMPLE_PREFIX_HEADERS.length + extraSampleHeaders.length
+      ),
+      standards: values.slice(
+        SAMPLE_PREFIX_HEADERS.length + extraSampleHeaders.length,
+        -SAMPLE_TAIL_HEADERS.length
+      ),
       tail: values.slice(-SAMPLE_TAIL_HEADERS.length)
     })));
+    $("#extraSampleColumnsStatus").textContent = extraSampleHeaders.length
+      ? `Loaded ${extraSampleHeaders.length} additional metadata column${extraSampleHeaders.length === 1 ? "" : "s"}.`
+      : "No additional columns configured.";
     $("#sampleCsvStatus").textContent = `Loaded ${dataRows.length} sample row${dataRows.length === 1 ? "" : "s"} from ${file.name}.`;
     updateAll();
   } catch (error) {
@@ -748,7 +846,7 @@ async function downloadPackage() {
   const config = zip.folder("config");
   config.file("config.yml", configToYAML());
   config.file("samples.tsv", sampleTableToTSV());
-  config.file("bioanalyzer.tsv", [
+  config.file("prok_and_euk_SSU_amplicon_concentrations.tsv", [
     "sample_type\tamount_pM",
     `16S\t${$("#amt16s").value}`,
     `18S\t${$("#amt18s").value}`

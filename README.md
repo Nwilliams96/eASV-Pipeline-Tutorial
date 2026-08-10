@@ -18,3 +18,9 @@ The published tutorial is available at
 - The download button creates a ZIP file in the browser.
 - Internal standards can be added or removed; the generated config, sample
   columns, and internal-standard table stay synchronized.
+- Renaming a preset internal standard clears its preset definition to prevent a
+  BP, DR, or TT sequence from being assigned to a different name accidentally.
+- Users can add arbitrary sample metadata columns. They are exported to
+  `samples.tsv` and become filters in the pipeline's HTML taxonomy report.
+- The generated concentration file is named
+  `prok_and_euk_SSU_amplicon_concentrations.tsv`.

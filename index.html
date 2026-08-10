@@ -249,6 +249,33 @@ cd AMT29-analysis</pre>
             <button class="secondary" type="button" data-remove-standard>Remove last standard</button>
           </div>
           <div class="hint">Use letters, numbers, periods, underscores, or hyphens. The same ordered list is used in the sample columns, internal-standard table, correction plots, and report.</div>
+
+          <div id="standards" class="stack">
+            <h3>Internal standard information</h3>
+            <p>Enter the copy number, genome length, and complete 16S sequence for every named standard.</p>
+            <p class="small-muted">BP, DR, and TT are prefilled from the common preset. If you rename one, its preset definition is cleared so it cannot be mistaken for the newly named standard.</p>
+            <aside class="note">
+              This information is completed once per standard. The amount actually added can differ among samples:
+              enter that mass in nanograms in each sample's matching <code>&lt;standard-name&gt;_ng</code> column.
+              The normalization factor and unit also belong in the sample file; examples include volume filtered in
+              litres or soil extracted in grams.
+            </aside>
+            <div id="standardsWrap" class="standards-wrap"></div>
+            <button
+              class="secondary preview-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="standardsPreviewPanel"
+              data-preview-target="standardsPreviewPanel"
+            >Preview internal_stds.tsv</button>
+            <div class="code-panel hidden" id="standardsPreviewPanel">
+              <div class="code-panel__bar">
+                <span>internal_stds.tsv preview</span>
+                <button class="copy-btn" data-copy="#standardsPreview">Copy</button>
+              </div>
+              <pre id="standardsPreview"></pre>
+            </div>
+          </div>
         </div>
 
         <div class="stack">
@@ -446,6 +473,16 @@ cd AMT29-analysis</pre>
         </div>
       </div>
 
+      <div class="field-group">
+        <label for="extraSampleColumns">Additional sample metadata columns</label>
+        <input id="extraSampleColumns" type="text" placeholder="station, treatment, extraction_batch" />
+        <div class="hint">Optional. Enter comma-separated column names, then apply them. These columns are preserved downstream and become filters in the HTML taxonomy report.</div>
+        <div class="actions compact-actions">
+          <button class="secondary" id="applyExtraSampleColumnsBtn" type="button">Apply metadata columns</button>
+        </div>
+        <p id="extraSampleColumnsStatus" class="small-muted">No additional columns configured.</p>
+      </div>
+
       <div class="table-wrap" role="region" aria-label="Scrollable sample metadata table" tabindex="0">
         <table class="sample-table">
           <thead>
@@ -522,51 +559,15 @@ cd AMT29-analysis</pre>
       <div class="code-panel hidden" id="ampliconPreviewPanel">
         <div class="code-panel__hint">Preview the amplicon concentrations file to confirm the 16S and 18S values before export.</div>
         <div class="code-panel__bar">
-          <span>bioanalyzer.tsv preview</span>
+          <span>prok_and_euk_SSU_amplicon_concentrations.tsv preview</span>
           <button class="copy-btn" data-copy="#ampliconPreview">Copy</button>
         </div>
         <pre id="ampliconPreview"></pre>
       </div>
     </section>
 
-    <section class="card" id="standards">
-      <div class="section-kicker">Step 5 • Internal standards</div>
-      <h2>Internal Standards</h2>
-      <p>The IDs come from Step 2. Enter the copy number, genome length, and complete 16S sequence for every standard. Adding or removing a standard here updates Step 2 and the sample table as well.</p>
-      <p class="small-muted">The BP, DR, and TT fields below are prefilled from the common preset. Review them and replace any value when your standards differ.</p>
-      <aside class="note">
-        This section describes each standard itself and is completed once per standard. The amount actually added can
-        differ among samples: enter that mass in nanograms in each sample's matching
-        <code>&lt;standard-name&gt;_ng</code> column in <code>samples.tsv</code>. The normalization factor and unit also
-        belong in the sample file; examples include volume filtered in litres or soil extracted in grams.
-      </aside>
-
-      <div id="standardsWrap" class="standards-wrap"></div>
-
-      <div class="actions compact-actions">
-        <button class="primary" type="button" data-add-standard>+ Add internal standard</button>
-        <button class="secondary" type="button" data-remove-standard>Remove last standard</button>
-      </div>
-
-      <button
-        class="secondary preview-toggle"
-        type="button"
-        aria-expanded="false"
-        aria-controls="standardsPreviewPanel"
-        data-preview-target="standardsPreviewPanel"
-      >Preview internal_stds.tsv</button>
-
-      <div class="code-panel hidden" id="standardsPreviewPanel">
-        <div class="code-panel__bar">
-          <span>internal_stds.tsv preview</span>
-          <button class="copy-btn" data-copy="#standardsPreview">Copy</button>
-        </div>
-        <pre id="standardsPreview"></pre>
-      </div>
-    </section>
-
     <section class="card" id="export">
-      <div class="section-kicker">Step 6 • Export</div>
+      <div class="section-kicker">Step 5 • Export</div>
       <h2>Export</h2>
       <p>Once everything is filled in, export the package you can upload into the Snakemake directory.</p>
 
@@ -579,7 +580,7 @@ cd AMT29-analysis</pre>
   README.md
   config.yml
   samples.tsv
-  bioanalyzer.tsv
+  prok_and_euk_SSU_amplicon_concentrations.tsv
   internal_stds.tsv  # included when internal standards are enabled
   schemas/
     config.schema.yml
@@ -783,7 +784,7 @@ if [[ ${#1} -eq 0 ]] ; then
 fi
 
 if [[ ! ${#1} -eq 0 ]] ; then
-	echo "An analysis directory has been created for you at /home/$USER/GRUMP-snakemake-pipeline/$1 . It contains all the scripts needed to run the pipeline. The only things you need to do now are: 1) Modify the config.yml and samples.tsv to allow it to find your input files, use the appropriate primers, choose database versions, etc 2) Add metadata as a separate file, 3) Add bioanalyzer correction info (optional, see documentation), 4) Add internal standard info (optional, see documentation). Important note: The pipeline assumes your input files are demultiplexed fastq.gz files with the primers still attached. Filenames are determined by the combination of the variables \$rawdatadir, \$R1file_ending, \$R2file_ending, and the sample column in the file \"samples.tsv\", so be sure everything matches."
+	echo "An analysis directory has been created for you at /home/$USER/GRUMP-snakemake-pipeline/$1 . It contains all the scripts needed to run the pipeline. The only things you need to do now are: 1) Modify the config.yml and samples.tsv to allow it to find your input files, use the appropriate primers, choose database versions, etc 2) Add metadata as needed, 3) Add prokaryotic and eukaryotic SSU amplicon concentration information, 4) Add internal standard info when used. Important note: The pipeline assumes your input files are demultiplexed fastq.gz files with the primers still attached. Filenames are determined by the combination of the variables \$rawdatadir, \$R1file_ending, \$R2file_ending, and the sample column in the file \"samples.tsv\", so be sure everything matches."
 fi
 
 studyName=$1
