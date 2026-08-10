@@ -219,6 +219,12 @@ cd AMT29-analysis</pre>
         </div>
 
         <div class="field-group">
+          <label for="conda_envs_dir">Shared Conda environment directory</label>
+          <input id="conda_envs_dir" type="text" value="../eASV-conda-envs" />
+          <div class="hint">Keep this outside the project clone. Snakemake checks this shared directory and reuses every completed rule environment whose definition has not changed. It creates only missing or updated environments, so future project clones do not reinstall the same software.</div>
+        </div>
+
+        <div class="field-group">
           <label for="rawdatadir">Raw data location</label>
           <input id="rawdatadir" type="text" value="/project2/fuhrman_1138/GRUMP/version-2/AMT29-DNA/00-raw" />
           <div class="hint">Enter the directory containing the FASTQ files. A trailing slash is optional.</div>
@@ -666,7 +672,9 @@ bash run_snakemake.sh</pre>
       </div>
       <p class="small-muted">
         The included script is intentionally minimal. Depending on your HPC system, you may need to add the appropriate
-        executor and resource allocation settings, such as jobs, CPUs, memory, runtime, account, or partition.
+        executor and resource allocation settings, such as jobs, CPUs, memory, runtime, account, or partition. The script
+        uses the shared <code>conda_envs_dir</code> from <code>config/config.yml</code>; existing matching environments are
+        reused automatically, and only missing or changed environments are created.
       </p>
 
       <div class="code-panel">
@@ -747,6 +755,9 @@ properties:
   samplesheet:
     type: string
     description: path to sample-sheet TSV file
+  conda_envs_dir:
+    type: string
+    description: shared directory for reusable Snakemake rule environments
   dada2:
     type: object
     properties:

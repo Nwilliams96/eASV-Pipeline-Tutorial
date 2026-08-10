@@ -343,6 +343,7 @@ function buildConfigPreview() {
   const useDb = $("#haveDatabases").checked;
   const useInternalStandards = $("#intstdToggle").checked;
   const dbDir = $("#database_dir").value.trim();
+  const condaEnvsDir = $("#conda_envs_dir").value.trim();
   const rawdatadir = $("#rawdatadir").value.trim();
   const R1file_ending = $("#R1file_ending").value.trim();
   const R2file_ending = $("#R2file_ending").value.trim();
@@ -360,6 +361,7 @@ function buildConfigPreview() {
   parts.push(`studyName: "${studyName}"`);
   parts.push(`use_preexisting_databases: ${useDb}`);
   parts.push(`database_dir: "${dbDir}"`);
+  parts.push(`conda_envs_dir: "${condaEnvsDir}"`);
   parts.push(`rawdatadir: "${rawdatadir}"`);
   parts.push(`R1file_ending: "${R1file_ending}"`);
   parts.push(`R2file_ending: "${R2file_ending}"`);
@@ -412,6 +414,7 @@ function buildValidation() {
     { label: "Valid project folder name", ok: /^[A-Za-z0-9._-]+$/.test($("#projectName").value.trim()) },
     { label: "Study name entered", ok: $("#studyName").value.trim().length > 0 },
     { label: "Shared database directory entered", ok: $("#database_dir").value.trim().length > 0 },
+    { label: "Shared Conda environment directory entered", ok: $("#conda_envs_dir").value.trim().length > 0 },
     { label: "Raw data location entered", ok: $("#rawdatadir").value.trim().length > 0 },
     { label: "Forward primer entered", ok: $("#fwdPrimer").value.trim().length > 0 },
     { label: "Reverse primer entered", ok: $("#revPrimer").value.trim().length > 0 },
@@ -802,6 +805,7 @@ function configToYAML() {
     `studyName: "${$("#studyName").value.trim()}"`,
     `use_preexisting_databases: ${useDb}`,
     `database_dir: "${$("#database_dir").value.trim()}"`,
+    `conda_envs_dir: "${$("#conda_envs_dir").value.trim()}"`,
     `rawdatadir: "${$("#rawdatadir").value.trim()}"`,
     `R1file_ending: "${$("#R1file_ending").value.trim()}"`,
     `R2file_ending: "${$("#R2file_ending").value.trim()}"`,

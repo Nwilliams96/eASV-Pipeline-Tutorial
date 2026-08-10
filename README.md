@@ -28,3 +28,5 @@ The published tutorial is available at
   fields are imported as blank cells.
 - The generated concentration file is named
   `prok_and_euk_SSU_amplicon_concentrations.tsv`.
+- Generated configs include a shared `conda_envs_dir` outside the analysis
+  clone, allowing Snakemake to reuse unchanged rule environments across projects.
