@@ -458,6 +458,14 @@ cd AMT29-analysis</pre>
         Excel, Google Sheets, or equivalent software.
       </p>
       <aside class="note">
+        <strong>Sample-sheet rule:</strong> an uploaded CSV must contain the exact lowercase <code>sample</code>
+        column and, when internal standards are enabled, every configured
+        <code>&lt;standard-name&gt;_ng</code> column. All other columns are optional: they may be omitted, renamed,
+        reordered, or replaced with your own metadata columns. Leave cells blank when no data are available—do not
+        enter <code>0</code> or <code>NA</code> as missing-data placeholders. The pipeline runs only the samples listed
+        in this sheet; if a sample is not included, it will not be processed.
+      </aside>
+      <aside class="note">
         When internal standards are enabled, enter the exact mass in nanograms added to each individual sample in
         its <code>&lt;standard-name&gt;_ng</code> column. Enter the sample-specific normalization amount in
         <code>internal_std_normalization_factor</code>—for example, litres of water filtered or grams of soil
@@ -499,7 +507,7 @@ cd AMT29-analysis</pre>
         <button class="secondary" id="uploadSampleCsvBtn" type="button">Upload completed CSV</button>
         <input class="hidden" id="sampleCsvUpload" type="file" accept=".csv,text/csv" />
       </div>
-      <p id="sampleCsvStatus" class="small-muted">The uploaded CSV fills this table; the final configuration download still contains the required <code>config/samples.tsv</code>.</p>
+      <p id="sampleCsvStatus" class="small-muted">Upload requires only <code>sample</code> and the configured internal-standard amount columns. Optional uploaded columns are retained, and omitted optional columns are left blank.</p>
 
       <button
         class="secondary preview-toggle"
@@ -705,7 +713,11 @@ The workflow is built using [snakemake](https://snakemake.readthedocs.io/en/stab
 
 This template workflow creates artificial sequencing data in `*.fastq.gz` format.
 It does not contain actual input data.
-The simulated input files are nevertheless created based on a mandatory table linked in the `config.yml` file (default: `.test/samples.tsv`).
+The pipeline selects its input samples from the mandatory table linked in `config.yml` (default: `config/samples.tsv`).
+The exact lowercase `sample` column is required. When internal standards are enabled, each configured
+`<standard-name>_ng` column is also required. All other metadata columns may be changed or omitted. Leave missing
+metadata blank rather than entering `0` or `NA` as a placeholder. Only samples listed in `samples.tsv` are run by
+the pipeline.
 The sample sheet has the following layout:
 
 | sample  | condition | replicate | read1                      | read2                      |

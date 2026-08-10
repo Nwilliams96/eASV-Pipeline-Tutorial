@@ -231,11 +231,11 @@ function applyExtraSampleColumns() {
   ].map(name => name.toLowerCase()));
   const normalizedRequested = requested.map(name => name.toLowerCase());
   const invalid = requested.filter(name =>
-    /[\t\r\n,]/.test(name) || name.endsWith("_ng") || reserved.has(name.toLowerCase())
+    /[\t\r\n,]/.test(name) || reserved.has(name.toLowerCase())
   );
   if (new Set(normalizedRequested).size !== requested.length || invalid.length) {
     $("#extraSampleColumnsStatus").textContent =
-      "Column names must be unique, cannot duplicate required columns, and cannot end in _ng.";
+      "Column names must be unique and cannot duplicate required columns.";
     return;
   }
 
@@ -710,7 +710,11 @@ function downloadSampleCsv() {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  $("#sampleCsvStatus").textContent = "Downloaded samples-template.csv. Complete it in a spreadsheet and upload it here.";
+  const requiredStandards = $("#intstdToggle").checked
+    ? getInternalStandardIds().map(id => `${id}_ng`)
+    : [];
+  const requiredText = ["sample", ...requiredStandards].join(", ");
+  $("#sampleCsvStatus").textContent = `Downloaded samples-template.csv. Only these columns are required when you upload it again: ${requiredText}.`;
 }
 
 async function uploadSampleCsv(event) {
@@ -720,37 +724,29 @@ async function uploadSampleCsv(event) {
     const rows = parseCSV(await file.text());
     if (rows.length < 2) throw new Error("The CSV needs a header and at least one sample row.");
     const headers = rows[0].map((value, index) => index === 0 ? value.replace(/^\uFEFF/, "").trim() : value.trim());
-    if (headers.length < SAMPLE_PREFIX_HEADERS.length + SAMPLE_TAIL_HEADERS.length
-      || SAMPLE_PREFIX_HEADERS.some((header, index) => headers[index] !== header)
-      || SAMPLE_TAIL_HEADERS.some((header, index) => headers[headers.length - SAMPLE_TAIL_HEADERS.length + index] !== header)) {
-      throw new Error("The CSV columns do not match the downloaded template.");
+    if (headers.some(header => !header)) {
+      throw new Error("Every CSV column needs a non-empty header.");
     }
-    const flexibleHeaders = headers.slice(
-      SAMPLE_PREFIX_HEADERS.length, -SAMPLE_TAIL_HEADERS.length
-    );
-    const firstStandardIndex = flexibleHeaders.findIndex(header => header.endsWith("_ng"));
-    const uploadedExtraHeaders = firstStandardIndex < 0
-      ? flexibleHeaders
-      : flexibleHeaders.slice(0, firstStandardIndex);
-    const standardHeaders = firstStandardIndex < 0
-      ? []
-      : flexibleHeaders.slice(firstStandardIndex);
-    if (standardHeaders.some(header => !header.endsWith("_ng"))) {
-      throw new Error("Additional metadata columns must appear before internal-standard <name>_ng columns.");
+    if (new Set(headers.map(header => header.toLowerCase())).size !== headers.length) {
+      throw new Error("CSV column names must be unique (ignoring capitalization).");
     }
-    const standardIds = standardHeaders.map(header => header.slice(0, -3));
-    const uploadedReservedHeaders = new Set([
+    if (!headers.includes("sample")) {
+      throw new Error('The CSV must contain an exact lowercase "sample" column.');
+    }
+
+    const standardHeaders = $("#intstdToggle").checked
+      ? getInternalStandardIds().map(id => `${id}_ng`)
+      : [];
+    const missingRequiredHeaders = standardHeaders.filter(header => !headers.includes(header));
+    if (missingRequiredHeaders.length) {
+      throw new Error(
+        `The CSV is missing required internal-standard column${missingRequiredHeaders.length === 1 ? "" : "s"}: ${missingRequiredHeaders.join(", ")}.`
+      );
+    }
+    const recognizedHeaders = new Set([
       ...SAMPLE_PREFIX_HEADERS, ...SAMPLE_TAIL_HEADERS, ...standardHeaders
-    ].map(header => header.toLowerCase()));
-    if (new Set(uploadedExtraHeaders.map(header => header.toLowerCase())).size !== uploadedExtraHeaders.length
-      || uploadedExtraHeaders.some(header =>
-        !header || header.endsWith("_ng") || uploadedReservedHeaders.has(header.toLowerCase())
-      )) {
-      throw new Error("Additional metadata column names must be non-empty and unique.");
-    }
-    if (new Set(standardIds).size !== standardIds.length || standardIds.some(id => !/^[A-Za-z0-9._-]+$/.test(id))) {
-      throw new Error("Internal-standard columns must use unique <name>_ng headers.");
-    }
+    ]);
+    const uploadedExtraHeaders = headers.filter(header => !recognizedHeaders.has(header));
     const dataRows = rows.slice(1);
     if (dataRows.length > 500) throw new Error("The tutorial supports up to 500 sample rows.");
     if (dataRows.some(values => values.length !== headers.length)) {
@@ -759,31 +755,28 @@ async function uploadSampleCsv(event) {
     if (dataRows.some(values => values.some(value => /[\t\r\n]/.test(value)))) {
       throw new Error("Sample values cannot contain tabs or line breaks.");
     }
+    const columnIndexes = new Map(headers.map((header, index) => [header, index]));
+    const valueFor = (values, header) => {
+      const index = columnIndexes.get(header);
+      return index === undefined ? "" : values[index];
+    };
+    if (dataRows.some(values => !valueFor(values, "sample").trim())) {
+      throw new Error("Every CSV row must have a sample value.");
+    }
 
-    const existingStandards = captureStandardDefinitions();
-    const existingById = new Map(existingStandards.map(standard => [standard.id, standard]));
-    renderStandardSections(standardIds.map(id => existingById.get(id) || {
-      id, copies: "", genome: "", sequence: ""
-    }));
     extraSampleHeaders = uploadedExtraHeaders;
     $("#extraSampleColumns").value = extraSampleHeaders.join(", ");
     renderSampleHeader();
     renderSampleRecords(dataRows.map(values => ({
-      prefix: values.slice(0, SAMPLE_PREFIX_HEADERS.length),
-      extra: values.slice(
-        SAMPLE_PREFIX_HEADERS.length,
-        SAMPLE_PREFIX_HEADERS.length + extraSampleHeaders.length
-      ),
-      standards: values.slice(
-        SAMPLE_PREFIX_HEADERS.length + extraSampleHeaders.length,
-        -SAMPLE_TAIL_HEADERS.length
-      ),
-      tail: values.slice(-SAMPLE_TAIL_HEADERS.length)
+      prefix: SAMPLE_PREFIX_HEADERS.map(header => valueFor(values, header)),
+      extra: extraSampleHeaders.map(header => valueFor(values, header)),
+      standards: standardHeaders.map(header => valueFor(values, header)),
+      tail: SAMPLE_TAIL_HEADERS.map(header => valueFor(values, header))
     })));
     $("#extraSampleColumnsStatus").textContent = extraSampleHeaders.length
       ? `Loaded ${extraSampleHeaders.length} additional metadata column${extraSampleHeaders.length === 1 ? "" : "s"}.`
       : "No additional columns configured.";
-    $("#sampleCsvStatus").textContent = `Loaded ${dataRows.length} sample row${dataRows.length === 1 ? "" : "s"} from ${file.name}.`;
+    $("#sampleCsvStatus").textContent = `Loaded ${dataRows.length} sample row${dataRows.length === 1 ? "" : "s"} from ${file.name}. Optional missing columns were left blank.`;
     updateAll();
   } catch (error) {
     $("#sampleCsvStatus").textContent = `Could not load ${file.name}: ${error.message}`;

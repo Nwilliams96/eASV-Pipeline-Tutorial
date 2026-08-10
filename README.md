@@ -22,5 +22,9 @@ The published tutorial is available at
   BP, DR, or TT sequence from being assigned to a different name accidentally.
 - Users can add arbitrary sample metadata columns. They are exported to
   `samples.tsv` and become filters in the pipeline's HTML taxonomy report.
+- CSV uploads require only the exact `sample` header and the configured
+  `<standard-name>_ng` headers when internal standards are enabled. Other
+  columns may be omitted, reordered, renamed, or replaced; omitted optional
+  fields are imported as blank cells.
 - The generated concentration file is named
   `prok_and_euk_SSU_amplicon_concentrations.tsv`.
