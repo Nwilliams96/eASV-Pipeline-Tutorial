@@ -720,6 +720,30 @@ function downloadSampleCsv() {
   $("#sampleCsvStatus").textContent = `Downloaded samples-template.csv. Only these columns are required when you upload it again: ${requiredText}.`;
 }
 
+function classifySampleCsvHeaders(headers, standardHeaders) {
+  if (headers.some(header => !header)) {
+    throw new Error("Every CSV column needs a non-empty header.");
+  }
+  if (new Set(headers.map(header => header.toLowerCase())).size !== headers.length) {
+    throw new Error("CSV column names must be unique (ignoring capitalization).");
+  }
+  if (!headers.includes("sample")) {
+    throw new Error('The CSV must contain an exact lowercase "sample" column.');
+  }
+
+  const missingRequiredHeaders = standardHeaders.filter(header => !headers.includes(header));
+  if (missingRequiredHeaders.length) {
+    throw new Error(
+      `The CSV is missing required internal-standard column${missingRequiredHeaders.length === 1 ? "" : "s"}: ${missingRequiredHeaders.join(", ")}.`
+    );
+  }
+
+  const recognizedHeaders = new Set([
+    ...SAMPLE_PREFIX_HEADERS, ...SAMPLE_TAIL_HEADERS, ...standardHeaders
+  ]);
+  return headers.filter(header => !recognizedHeaders.has(header));
+}
+
 async function uploadSampleCsv(event) {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -727,29 +751,10 @@ async function uploadSampleCsv(event) {
     const rows = parseCSV(await file.text());
     if (rows.length < 2) throw new Error("The CSV needs a header and at least one sample row.");
     const headers = rows[0].map((value, index) => index === 0 ? value.replace(/^\uFEFF/, "").trim() : value.trim());
-    if (headers.some(header => !header)) {
-      throw new Error("Every CSV column needs a non-empty header.");
-    }
-    if (new Set(headers.map(header => header.toLowerCase())).size !== headers.length) {
-      throw new Error("CSV column names must be unique (ignoring capitalization).");
-    }
-    if (!headers.includes("sample")) {
-      throw new Error('The CSV must contain an exact lowercase "sample" column.');
-    }
-
     const standardHeaders = $("#intstdToggle").checked
       ? getInternalStandardIds().map(id => `${id}_ng`)
       : [];
-    const missingRequiredHeaders = standardHeaders.filter(header => !headers.includes(header));
-    if (missingRequiredHeaders.length) {
-      throw new Error(
-        `The CSV is missing required internal-standard column${missingRequiredHeaders.length === 1 ? "" : "s"}: ${missingRequiredHeaders.join(", ")}.`
-      );
-    }
-    const recognizedHeaders = new Set([
-      ...SAMPLE_PREFIX_HEADERS, ...SAMPLE_TAIL_HEADERS, ...standardHeaders
-    ]);
-    const uploadedExtraHeaders = headers.filter(header => !recognizedHeaders.has(header));
+    const uploadedExtraHeaders = classifySampleCsvHeaders(headers, standardHeaders);
     const dataRows = rows.slice(1);
     if (dataRows.length > 500) throw new Error("The tutorial supports up to 500 sample rows.");
     if (dataRows.some(values => values.length !== headers.length)) {
