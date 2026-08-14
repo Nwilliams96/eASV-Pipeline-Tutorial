@@ -261,10 +261,13 @@ cd AMT29-analysis</pre>
             <p>Enter the copy number, genome length, and complete 16S sequence for every named standard.</p>
             <p class="small-muted">BP, DR, and TT are prefilled from the common preset. If you rename one, its preset definition is cleared so it cannot be mistaken for the newly named standard.</p>
             <aside class="note">
-              This information is completed once per standard. The amount actually added can differ among samples:
+              <code>internal_stds.tsv</code> stores the definition that does not change between samples: the name,
+              rRNA copy number, genome length, and 16S sequence. <code>samples.tsv</code> stores what did change by
+              sample. The amount actually added can differ among samples:
               enter that mass in nanograms in each sample's matching <code>&lt;standard-name&gt;_ng</code> column.
               The normalization factor and unit also belong in the sample file; examples include volume filtered in
-              litres or soil extracted in grams.
+              litres or soil extracted in grams. If a standard was not added to a particular sample, leave its cell
+              blank; do not type <code>NA</code>, <code>na</code>, or another placeholder.
             </aside>
             <div id="standardsWrap" class="standards-wrap"></div>
             <button
@@ -464,7 +467,7 @@ cd AMT29-analysis</pre>
         Excel, Google Sheets, or equivalent software.
       </p>
       <aside class="note">
-        <strong>Sample-sheet rule:</strong> an uploaded CSV must contain the exact lowercase <code>sample</code>
+        <strong>Sample-sheet rule:</strong> an uploaded TSV must contain the exact lowercase <code>sample</code>
         column and, when internal standards are enabled, every configured
         <code>&lt;standard-name&gt;_ng</code> column. All other columns are optional: they may be omitted, renamed,
         reordered, or replaced with your own metadata columns. Leave cells blank when no data are available—do not
@@ -489,8 +492,8 @@ cd AMT29-analysis</pre>
 
       <div class="field-group">
         <label for="extraSampleColumns">Additional sample metadata columns</label>
-        <input id="extraSampleColumns" type="text" placeholder="station, treatment, extraction_batch" />
-        <div class="hint">Optional. Enter comma-separated column names, then apply them. These columns are preserved downstream and become filters in the HTML taxonomy report.</div>
+        <input id="extraSampleColumns" type="text" value="replicate, condition, Depth (m), Latitude and Longitude, Longitude [degrees_east], Latitude [degrees_north], time" placeholder="station, treatment, extraction_batch" />
+        <div class="hint">Optional. This list defines every metadata column besides <code>sample</code> and the internal-standard fields. Add, rename, or remove columns—including depth, latitude, and longitude—then apply the list. The chosen columns are preserved downstream and become filters in the HTML taxonomy report.</div>
         <div class="actions compact-actions">
           <button class="secondary" id="applyExtraSampleColumnsBtn" type="button">Apply metadata columns</button>
         </div>
@@ -509,9 +512,9 @@ cd AMT29-analysis</pre>
       <div class="actions">
         <button class="primary" id="addSampleBtn" type="button">+ Add sample row</button>
         <button class="secondary" id="removeSampleBtn" type="button">Remove last row</button>
-        <button class="secondary" id="downloadSampleCsvBtn" type="button">Download CSV template</button>
-        <button class="secondary" id="uploadSampleCsvBtn" type="button">Upload completed CSV</button>
-        <input class="hidden" id="sampleCsvUpload" type="file" accept=".csv,text/csv" />
+        <button class="secondary" id="downloadSampleCsvBtn" type="button">Download TSV template</button>
+        <button class="secondary" id="uploadSampleCsvBtn" type="button">Upload completed TSV</button>
+        <input class="hidden" id="sampleCsvUpload" type="file" accept=".tsv,text/tab-separated-values,text/plain" />
       </div>
       <p id="sampleCsvStatus" class="small-muted">Upload requires only <code>sample</code> and the configured internal-standard amount columns. Optional uploaded columns are retained, and omitted optional columns are left blank.</p>
 
@@ -534,8 +537,8 @@ cd AMT29-analysis</pre>
     </section>
 
     <section class="card" id="amplicon">
-      <div class="section-kicker">Step 4 • Amplicon concentrations</div>
-      <h2>Amplicon Concentrations</h2>
+      <div class="section-kicker">Step 4 • Amplicon molarities</div>
+      <h2>Amplicon Molarities</h2>
       <p>
         The 515F/926R primer pair targets both 16S and nuclear 18S rRNA. Unfortunately, there is a bias against 18S
         sequences when 16S and 18S sequences are mixed. This is because the 16S and 18S amplicons have different
@@ -568,12 +571,12 @@ cd AMT29-analysis</pre>
         aria-expanded="false"
         aria-controls="ampliconPreviewPanel"
         data-preview-target="ampliconPreviewPanel"
-      >Preview concentrations file</button>
+      >Preview molarities file</button>
 
       <div class="code-panel hidden" id="ampliconPreviewPanel">
-        <div class="code-panel__hint">Preview the amplicon concentrations file to confirm the 16S and 18S values before export.</div>
+        <div class="code-panel__hint">Preview the amplicon molarities file to confirm the 16S and 18S values before export.</div>
         <div class="code-panel__bar">
-          <span>prok_and_euk_SSU_amplicon_concentrations.tsv preview</span>
+          <span>prok_and_euk_SSU_amplicon_molarities.tsv preview</span>
           <button class="copy-btn" data-copy="#ampliconPreview">Copy</button>
         </div>
         <pre id="ampliconPreview"></pre>
@@ -594,7 +597,7 @@ cd AMT29-analysis</pre>
   README.md
   config.yml
   samples.tsv
-  prok_and_euk_SSU_amplicon_concentrations.tsv
+  prok_and_euk_SSU_amplicon_molarities.tsv
   internal_stds.tsv  # included when internal standards are enabled
   schemas/
     config.schema.yml
@@ -678,12 +681,12 @@ bash run_snakemake.sh</pre>
       </p>
 
       <div class="code-panel">
-        <div class="code-panel__hint">After Snakemake finishes, download the <code>Results-Export/</code> folder. It contains the formatted data tables and this self-contained HTML report for a quick review of parameters, read quality and losses, composition, taxa, and internal-standard figures.</div>
+        <div class="code-panel__hint">After Snakemake finishes, download the <code>&lt;project-name&gt;-Results-Export/</code> folder. Its project-specific name prevents downloads from different runs being confused. It contains the formatted data tables, phylum and order summaries, and the self-contained HTML report.</div>
         <div class="code-panel__bar">
           <span>Final pipeline report</span>
           <button class="copy-btn" data-copy="#reportPath">Copy</button>
         </div>
-        <pre id="reportPath">Results-Export/AMT29.pipeline-report.html</pre>
+        <pre id="reportPath">AMT29-analysis-Results-Export/AMT29.pipeline-report.html</pre>
       </div>
 
       <div class="grump-cta">
@@ -752,6 +755,10 @@ This table lists all parameters that can be used to run the workflow.
 $schema: "https://json-schema.org/draft/2020-12/schema"
 description: main configuration schema for the workflow
 properties:
+  projectName:
+    type: string
+    pattern: "^[A-Za-z0-9._-]+$"
+    description: project directory name used for the downloadable results folder
   samplesheet:
     type: string
     description: path to sample-sheet TSV file

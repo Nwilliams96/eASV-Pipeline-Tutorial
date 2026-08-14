@@ -3,12 +3,18 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const PIPELINE_REPOSITORY = "https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits.git";
 const SILVA_VERSION = "138.1";
 let lastSuggestedTransferInput = "";
-const SAMPLE_PREFIX_HEADERS = [
-  "sample", "replicate", "condition", "Depth (m)", "Latitude and Longitude",
-  "Longitude [degrees_east]", "Latitude [degrees_north]", "time"
-];
+const SAMPLE_PREFIX_HEADERS = ["sample"];
+const DEFAULT_SAMPLE_METADATA = {
+  "replicate": "1",
+  "condition": "AMT29-whole-seawater",
+  "Depth (m)": "2",
+  "Latitude and Longitude": "6.7321 S 49.0482 E",
+  "Longitude [degrees_east]": "49.0482",
+  "Latitude [degrees_north]": "-6.7321",
+  "time": "2019-10-16T13:20:00"
+};
 const SAMPLE_TAIL_HEADERS = ["internal_std_normalization_factor", "units"];
-let extraSampleHeaders = [];
+let extraSampleHeaders = Object.keys(DEFAULT_SAMPLE_METADATA);
 const DEFAULT_INTERNAL_STANDARDS = [
   {
     "id": "BP",
@@ -87,7 +93,8 @@ function buildConfigUploadPreview() {
 
 function buildReportPath() {
   const studyName = $("#studyName").value.trim() || "study-name";
-  $("#reportPath").textContent = `Results-Export/${studyName}.pipeline-report.html`;
+  const projectName = $("#projectName").value.trim() || "my-eASV-project";
+  $("#reportPath").textContent = `${projectName}-Results-Export/${studyName}.pipeline-report.html`;
 }
 
 function updateProgress() {
@@ -108,14 +115,13 @@ function sampleCell(value) {
 }
 
 function sampleRowHTML(data = {}, useDefaults = true) {
-  const defaultPrefix = [
-    "AMT29_02", "1", "AMT29-whole-seawater", "2", "6.7321 S 49.0482 E",
-    "49.0482", "-6.7321", "2019-10-16T13:20:00"
-  ];
+  const defaultPrefix = ["AMT29_02"];
   const defaultTail = ["0.66666667", "L"];
   const standardCount = getInternalStandardIds().length;
-  const prefix = data.prefix || (useDefaults ? defaultPrefix : Array(8).fill(""));
-  const extra = data.extra || Array(extraSampleHeaders.length).fill("");
+  const prefix = data.prefix || (useDefaults ? defaultPrefix : Array(SAMPLE_PREFIX_HEADERS.length).fill(""));
+  const extra = data.extra || (useDefaults
+    ? extraSampleHeaders.map(header => DEFAULT_SAMPLE_METADATA[header] || "")
+    : Array(extraSampleHeaders.length).fill(""));
   const standards = data.standards || (useDefaults ? Array(standardCount).fill("52") : Array(standardCount).fill(""));
   const tail = data.tail || (useDefaults ? defaultTail : Array(2).fill(""));
   return `
@@ -358,6 +364,7 @@ function buildConfigPreview() {
   parts.push(`# make sure variables below point to the right place / are named appropriately`);
   parts.push(``);
   parts.push(`samplesheet: "config/samples.tsv"`);
+  parts.push(`projectName: "${$("#projectName").value.trim()}"`);
   parts.push(`studyName: "${studyName}"`);
   parts.push(`use_preexisting_databases: ${useDb}`);
   parts.push(`database_dir: "${dbDir}"`);
@@ -653,62 +660,18 @@ function sampleTableToTSV() {
   return [headers.join("\t"), ...rows.map(r => r.join("\t"))].join("\n");
 }
 
-function csvCell(value) {
-  const text = String(value ?? "");
-  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
-
-function sampleTableToCSV() {
-  return [sampleHeaders(), ...sampleTableRows()]
-    .map(row => row.map(csvCell).join(","))
-    .join("\r\n");
-}
-
-function parseCSV(text) {
-  const rows = [];
-  let row = [];
-  let cell = "";
-  let quoted = false;
-
-  for (let index = 0; index < text.length; index += 1) {
-    const char = text[index];
-    if (quoted) {
-      if (char === '"' && text[index + 1] === '"') {
-        cell += '"';
-        index += 1;
-      } else if (char === '"') {
-        quoted = false;
-      } else {
-        cell += char;
-      }
-    } else if (char === '"') {
-      quoted = true;
-    } else if (char === ",") {
-      row.push(cell);
-      cell = "";
-    } else if (char === "\n") {
-      row.push(cell);
-      rows.push(row);
-      row = [];
-      cell = "";
-    } else if (char !== "\r") {
-      cell += char;
-    }
-  }
-  if (quoted) throw new Error("The CSV contains an unclosed quoted value.");
-  if (cell !== "" || row.length) {
-    row.push(cell);
-    rows.push(row);
-  }
-  return rows.filter(values => values.some(value => value.trim() !== ""));
+function parseTSV(text) {
+  return text.replace(/^\uFEFF/, "").split(/\r?\n/)
+    .filter(line => line.trim() !== "")
+    .map(line => line.split("\t"));
 }
 
 function downloadSampleCsv() {
-  const blob = new Blob([sampleTableToCSV()], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob([sampleTableToTSV()], { type: "text/tab-separated-values;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "samples-template.csv";
+  link.download = "samples-template.tsv";
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -717,24 +680,24 @@ function downloadSampleCsv() {
     ? getInternalStandardIds().map(id => `${id}_ng`)
     : [];
   const requiredText = ["sample", ...requiredStandards].join(", ");
-  $("#sampleCsvStatus").textContent = `Downloaded samples-template.csv. Only these columns are required when you upload it again: ${requiredText}.`;
+  $("#sampleCsvStatus").textContent = `Downloaded samples-template.tsv. Only these columns are required when you upload it again: ${requiredText}.`;
 }
 
 function classifySampleCsvHeaders(headers, standardHeaders) {
   if (headers.some(header => !header)) {
-    throw new Error("Every CSV column needs a non-empty header.");
+    throw new Error("Every TSV column needs a non-empty header.");
   }
   if (new Set(headers.map(header => header.toLowerCase())).size !== headers.length) {
-    throw new Error("CSV column names must be unique (ignoring capitalization).");
+    throw new Error("TSV column names must be unique (ignoring capitalization).");
   }
   if (!headers.includes("sample")) {
-    throw new Error('The CSV must contain an exact lowercase "sample" column.');
+    throw new Error('The TSV must contain an exact lowercase "sample" column.');
   }
 
   const missingRequiredHeaders = standardHeaders.filter(header => !headers.includes(header));
   if (missingRequiredHeaders.length) {
     throw new Error(
-      `The CSV is missing required internal-standard column${missingRequiredHeaders.length === 1 ? "" : "s"}: ${missingRequiredHeaders.join(", ")}.`
+      `The TSV is missing required internal-standard column${missingRequiredHeaders.length === 1 ? "" : "s"}: ${missingRequiredHeaders.join(", ")}.`
     );
   }
 
@@ -748,8 +711,8 @@ async function uploadSampleCsv(event) {
   const file = event.target.files?.[0];
   if (!file) return;
   try {
-    const rows = parseCSV(await file.text());
-    if (rows.length < 2) throw new Error("The CSV needs a header and at least one sample row.");
+    const rows = parseTSV(await file.text());
+    if (rows.length < 2) throw new Error("The TSV needs a header and at least one sample row.");
     const headers = rows[0].map((value, index) => index === 0 ? value.replace(/^\uFEFF/, "").trim() : value.trim());
     const standardHeaders = $("#intstdToggle").checked
       ? getInternalStandardIds().map(id => `${id}_ng`)
@@ -769,7 +732,7 @@ async function uploadSampleCsv(event) {
       return index === undefined ? "" : values[index];
     };
     if (dataRows.some(values => !valueFor(values, "sample").trim())) {
-      throw new Error("Every CSV row must have a sample value.");
+      throw new Error("Every TSV row must have a sample value.");
     }
 
     extraSampleHeaders = uploadedExtraHeaders;
@@ -807,6 +770,7 @@ function configToYAML() {
     '# make sure variables below point to the right place / are named appropriately',
     '',
     'samplesheet: "config/samples.tsv"',
+    `projectName: "${$("#projectName").value.trim()}"`,
     `studyName: "${$("#studyName").value.trim()}"`,
     `use_preexisting_databases: ${useDb}`,
     `database_dir: "${$("#database_dir").value.trim()}"`,
@@ -848,7 +812,7 @@ async function downloadPackage() {
   const config = zip.folder("config");
   config.file("config.yml", configToYAML());
   config.file("samples.tsv", sampleTableToTSV());
-  config.file("prok_and_euk_SSU_amplicon_concentrations.tsv", [
+  config.file("prok_and_euk_SSU_amplicon_molarities.tsv", [
     "sample_type\tamount_pM",
     `16S\t${$("#amt16s").value}`,
     `18S\t${$("#amt18s").value}`

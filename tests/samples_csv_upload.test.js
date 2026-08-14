@@ -9,15 +9,15 @@ const source = fs.readFileSync(scriptPath, "utf8").replace(/\ninit\(\);\s*$/, "\
 const context = vm.createContext({ console });
 vm.runInContext(source, context, { filename: scriptPath });
 
-const parseCSV = vm.runInContext("parseCSV", context);
+const parseTSV = vm.runInContext("parseTSV", context);
 const classifySampleCsvHeaders = vm.runInContext("classifySampleCsvHeaders", context);
 
-test("accepts a downloaded sample CSV with an added temperature column", () => {
-  const csv = [
-    "sample,BP_ng,DR_ng,TT_ng,temperature",
-    "TEST_SAMPLE,52,52,52,18.5"
+test("accepts a downloaded sample TSV with an added temperature column", () => {
+  const tsv = [
+    "sample\tBP_ng\tDR_ng\tTT_ng\ttemperature",
+    "TEST_SAMPLE\t52\t52\t52\t18.5"
   ].join("\n");
-  const [headers] = parseCSV(csv);
+  const [headers] = parseTSV(tsv);
 
   assert.deepEqual(
     Array.from(classifySampleCsvHeaders(headers, ["BP_ng", "DR_ng", "TT_ng"])),
