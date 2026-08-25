@@ -193,6 +193,20 @@ button, input, textarea { font: inherit; }
   background: #fbf7f1;
   color: var(--text);
 }
+.critical-warning {
+  margin: 10px 0 18px;
+  padding: 15px 16px;
+  border: 2px solid #b45309;
+  border-left-width: 7px;
+  border-radius: 12px;
+  background: #fff7ed;
+  color: #7c2d12;
+}
+.critical-warning strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #7c2d12;
+}
 
 .panel-grid {
   display: grid;

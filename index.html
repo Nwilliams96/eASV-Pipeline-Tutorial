@@ -242,9 +242,16 @@ cd AMT29-analysis</pre>
         </div>
 
         <div class="toggle-row">
-          <input id="intstdToggle" type="checkbox" checked />
+          <input id="intstdToggle" type="checkbox" />
           <label for="intstdToggle">Did you add genomic internal standards?</label>
         </div>
+
+        <aside class="critical-warning" role="alert">
+          <strong>Only check this box if genomic internal standards were physically added to your samples.</strong>
+          If internal-standard correction is enabled without internal standards in the samples, the required ISD
+          sequences and recovery values cannot be produced and the pipeline will not finish. Leave the box unchecked
+          for datasets that do not contain internal standards.
+        </aside>
 
         <div id="intstdBlock" class="stack">
           <aside class="note">BP, DR, and TT are preloaded as a convenient starting preset using our commonly used copy numbers, genome lengths, and full 16S sequences. Every value remains editable, and standards can be renamed, removed, or added.</aside>

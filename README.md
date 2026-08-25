@@ -20,6 +20,8 @@ The published tutorial is available at
   columns, and internal-standard table stay synchronized.
 - Renaming a preset internal standard clears its preset definition to prevent a
   BP, DR, or TT sequence from being assigned to a different name accidentally.
+- Internal-standard correction is off by default, with a prominent warning that
+  it must only be enabled when genomic standards were physically added to samples.
 - Users can add arbitrary sample metadata columns. They are exported to
   `samples.tsv` and become filters in the pipeline's HTML taxonomy report.
 - TSV uploads require only the exact `sample` header and the configured
