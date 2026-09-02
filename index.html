@@ -145,9 +145,9 @@
       <div class="section-kicker">Step 1 • Getting started</div>
       <h2>Repository and software setup</h2>
       <p>
-        Install the required software, then enter a name for your project directory in the repository section below.
-        The clone command updates automatically and creates a new directory with that project name. Use a different
-        name for each analysis so its configuration, logs, and results stay together.
+        Install the required software, then enter your project name in the repository section below. This one name is
+        used for the cloned directory, configuration, result filenames, and final Results-Export folder. Use a
+        different name for each analysis so its configuration, logs, and results stay together.
       </p>
 
       <h3>Install the requirements</h3>
@@ -173,14 +173,14 @@ snakemake --version</pre>
       <div class="repository-setup">
         <h3>Clone the pipeline repository</h3>
         <p>
-          Choose the name of the directory that will contain this analysis. The generated command clones the pipeline
-          from the public <a class="requirement-link" href="https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits" target="_blank" rel="noopener">pipeline repository</a>
-          into a new directory with that name and then moves into it.
+          Choose a project name for this analysis. The generated command clones the pipeline from the public
+          <a class="requirement-link" href="https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits" target="_blank" rel="noopener">pipeline repository</a>
+          into a directory with that project name and then moves into it. You will not need to enter the project name again.
         </p>
         <div class="field-group">
-          <label for="projectName">Project directory name</label>
+          <label for="projectName">Project name</label>
           <input id="projectName" type="text" value="AMT29-analysis" pattern="[A-Za-z0-9._-]+" />
-          <div class="hint">Use letters, numbers, periods, underscores, or hyphens. The command updates automatically.</div>
+          <div class="hint">This will also be the directory name. Use letters, numbers, periods, underscores, or hyphens.</div>
         </div>
 
         <div class="code-panel">
@@ -202,11 +202,6 @@ cd AMT29-analysis</pre>
       <p>Fill these fields to generate the <code>config/config.yml</code> file used by the Snakemake workflow.</p>
 
       <div class="panel-grid">
-        <div class="field-group">
-          <label for="studyName">Study Name</label>
-          <input id="studyName" type="text" value="AMT29" />
-        </div>
-
         <div class="toggle-row">
           <input id="haveDatabases" type="checkbox" checked />
           <label for="haveDatabases">A complete shared database is already downloaded and trained</label>

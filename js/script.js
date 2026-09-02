@@ -92,9 +92,8 @@ function buildConfigUploadPreview() {
 }
 
 function buildReportPath() {
-  const studyName = $("#studyName").value.trim() || "study-name";
   const projectName = $("#projectName").value.trim() || "my-eASV-project";
-  $("#reportPath").textContent = `${projectName}-Results-Export/${studyName}.pipeline-report.html`;
+  $("#reportPath").textContent = `${projectName}-Results-Export/${projectName}.pipeline-report.html`;
 }
 
 function updateProgress() {
@@ -345,7 +344,7 @@ function validDada2Settings() {
 }
 
 function buildConfigPreview() {
-  const studyName = $("#studyName").value.trim();
+  const projectName = $("#projectName").value.trim();
   const useDb = $("#haveDatabases").checked;
   const useInternalStandards = $("#intstdToggle").checked;
   const dbDir = $("#database_dir").value.trim();
@@ -364,8 +363,8 @@ function buildConfigPreview() {
   parts.push(`# make sure variables below point to the right place / are named appropriately`);
   parts.push(``);
   parts.push(`samplesheet: "config/samples.tsv"`);
-  parts.push(`projectName: "${$("#projectName").value.trim()}"`);
-  parts.push(`studyName: "${studyName}"`);
+  parts.push(`projectName: "${projectName}"`);
+  parts.push(`studyName: "${projectName}"`);
   parts.push(`use_preexisting_databases: ${useDb}`);
   parts.push(`database_dir: "${dbDir}"`);
   parts.push(`conda_envs_dir: "${condaEnvsDir}"`);
@@ -418,8 +417,7 @@ function buildValidation() {
     && ids.every(id => /^[A-Za-z0-9._-]+$/.test(id))
     && standards.every(s => s.id && s.copies && s.genome && /^[ACGTRYSWKMBDHVN]+$/.test(s.seq));
   const checks = [
-    { label: "Valid project folder name", ok: /^[A-Za-z0-9._-]+$/.test($("#projectName").value.trim()) },
-    { label: "Study name entered", ok: $("#studyName").value.trim().length > 0 },
+    { label: "Valid project and directory name", ok: /^[A-Za-z0-9._-]+$/.test($("#projectName").value.trim()) },
     { label: "Shared database directory entered", ok: $("#database_dir").value.trim().length > 0 },
     { label: "Shared Conda environment directory entered", ok: $("#conda_envs_dir").value.trim().length > 0 },
     { label: "Raw data location entered", ok: $("#rawdatadir").value.trim().length > 0 },
@@ -766,12 +764,13 @@ function configToYAML() {
   const useDb = $("#haveDatabases").checked;
   const useInternalStandards = $("#intstdToggle").checked;
   const internalStandardIds = getInternalStandardIds();
+  const projectName = $("#projectName").value.trim();
   return [
     '# make sure variables below point to the right place / are named appropriately',
     '',
     'samplesheet: "config/samples.tsv"',
-    `projectName: "${$("#projectName").value.trim()}"`,
-    `studyName: "${$("#studyName").value.trim()}"`,
+    `projectName: "${projectName}"`,
+    `studyName: "${projectName}"`,
     `use_preexisting_databases: ${useDb}`,
     `database_dir: "${$("#database_dir").value.trim()}"`,
     `conda_envs_dir: "${$("#conda_envs_dir").value.trim()}"`,
