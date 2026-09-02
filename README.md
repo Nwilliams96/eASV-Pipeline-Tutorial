@@ -32,3 +32,5 @@ The published tutorial is available at
   `prok_and_euk_SSU_amplicon_molarities.tsv`.
 - Generated configs include a shared `conda_envs_dir` outside the analysis
   clone, allowing Snakemake to reuse unchanged rule environments across projects.
+- Primer sequences and the QIIME 2 environment are presented as their own
+  labelled configuration sections so these required settings are easy to find.

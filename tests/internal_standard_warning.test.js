@@ -12,3 +12,10 @@ test("internal-standard correction is opt-in and carries a clear stopping warnin
   assert.match(html, /Only check this box if genomic internal standards were physically added/);
   assert.match(html, /the pipeline will not finish/);
 });
+
+test("primer and QIIME 2 controls have clearly labelled sections", () => {
+  assert.match(html, /<h3>Primer sequences<\/h3>/);
+  assert.match(html, /<h3>QIIME 2 environment<\/h3>/);
+  assert.ok(html.indexOf("Primer sequences") < html.indexOf('id="fwdPrimer"'));
+  assert.ok(html.indexOf("QIIME 2 environment") < html.indexOf('id="qiimeToggle"'));
+});

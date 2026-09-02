@@ -426,23 +426,34 @@ cd AMT29-analysis</pre>
           </div>
         </div>
 
-        <div class="field-group">
-          <label for="fwdPrimer">Forward primer</label>
-          <input id="fwdPrimer" type="text" value="GTGYCAGCMGCCGCGGTAA" />
+        <div class="stack">
+          <h3>Primer sequences</h3>
+          <p class="small-muted">Enter the primer sequences that are still attached to the raw reads. Cutadapt uses these values to identify and remove primers before BBsplit and DADA2.</p>
         </div>
 
-        <div class="field-group">
-          <label for="revPrimer">Reverse primer</label>
-          <input id="revPrimer" type="text" value="CCGYCAATTYMTTTRAGTTT" />
+        <div class="two-col">
+          <div class="field-group">
+            <label for="fwdPrimer">Forward primer</label>
+            <input id="fwdPrimer" type="text" value="GTGYCAGCMGCCGCGGTAA" />
+          </div>
+          <div class="field-group">
+            <label for="revPrimer">Reverse primer</label>
+            <input id="revPrimer" type="text" value="CCGYCAATTYMTTTRAGTTT" />
+          </div>
+        </div>
+
+        <div class="stack">
+          <h3>QIIME 2 environment</h3>
+          <p class="small-muted">Choose whether to use an existing QIIME 2 environment definition and provide its location. This environment runs DADA2, taxonomy classification, and QIIME 2 artifact processing.</p>
         </div>
 
         <div class="toggle-row">
           <input id="qiimeToggle" type="checkbox" checked />
-          <label for="qiimeToggle">Do you have qiime2 installed?</label>
+          <label for="qiimeToggle">Do you have QIIME 2 installed?</label>
         </div>
 
         <div id="qiimeBlock" class="field-group">
-          <label for="qiime2version">Qiime2 version / location</label>
+          <label for="qiime2version">QIIME 2 version / location</label>
           <input id="qiime2version" type="text" value="../envs/qiime2-amplicon-ubuntu-2024-5-conda.yml" />
         </div>
 
