@@ -37,3 +37,6 @@ The published tutorial is available at
   clone, allowing Snakemake to reuse unchanged rule environments across projects.
 - Primer sequences and the QIIME 2 environment are presented as their own
   labelled configuration sections so these required settings are easy to find.
+- Generated configs use SILVA 144 and the bundled QIIME 2 2026.7 environment
+  definition. SILVA is fixed by the pipeline rather than exposed as a version
+  control, keeping its classifier, taxonomy ranks, and downstream parser aligned.

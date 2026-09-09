@@ -1,7 +1,9 @@
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const PIPELINE_REPOSITORY = "https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits.git";
-const SILVA_VERSION = "138.1";
+// SILVA is intentionally fixed here so every generated project uses the
+// classifier version supported by the pipeline and its taxonomy parser.
+const SILVA_VERSION = "144";
 let lastSuggestedTransferInput = "";
 const SAMPLE_PREFIX_HEADERS = ["sample"];
 const DEFAULT_SAMPLE_METADATA = {
