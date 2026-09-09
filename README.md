@@ -43,3 +43,8 @@ The published tutorial is available at
   The classifier assigns Domain through Genus; the pipeline adds provisional
   Species labels only for unambiguous exact matches to SILVA's version 144
   species reference when the matched genus agrees with the classifier result.
+- Database setup distinguishes the reusable BBsplit read-splitting database
+  from the classification resources. For a first-time setup, users leave the
+  BBsplit checkbox unchecked and enter a database download/build destination.
+  Missing SILVA 144 and PR2 resources are always downloaded or prepared in that
+  same shared directory, while files already present are reused.

@@ -301,6 +301,16 @@ function markPrefilled() {
   });
 }
 
+function updateDatabaseSetupText() {
+  const haveBbsplitDatabase = $("#haveDatabases").checked;
+  $("#databaseModeTitle").textContent = haveBbsplitDatabase
+    ? "Existing shared database location"
+    : "Database download/build destination";
+  $("#databaseModeDescription").textContent = haveBbsplitDatabase
+    ? "The pipeline will reuse the BBsplit database in this directory. It will also check for the release-pinned SILVA 144 and PR2 classification resources and download or prepare only those that are missing."
+    : "The pipeline will create this directory if needed, download and build the BBsplit database here, and download or prepare any missing SILVA 144 and PR2 classification resources. Keep it outside the project clone so future projects can reuse it.";
+}
+
 function dada2ConfigLines() {
   return [
     `dada2:`,
@@ -528,6 +538,7 @@ function bindEvents() {
   });
 
   $("#haveDatabases").addEventListener("change", () => {
+    updateDatabaseSetupText();
     updateAll();
   });
 
@@ -874,6 +885,7 @@ function init() {
   renderSampleHeader();
   $("#sampleBody").innerHTML = sampleRowHTML();
   $("#sampleCount").value = String($$("#sampleBody tr").length);
+  updateDatabaseSetupText();
   setVisible("qiimeBlock", $("#qiimeToggle").checked);
   const internalStandardsEnabled = $("#intstdToggle").checked;
   setVisible("intstdBlock", internalStandardsEnabled);

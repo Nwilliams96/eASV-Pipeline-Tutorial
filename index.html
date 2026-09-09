@@ -203,14 +203,16 @@ cd AMT29-analysis</pre>
 
       <div class="panel-grid">
         <div class="toggle-row">
-          <input id="haveDatabases" type="checkbox" checked />
-          <label for="haveDatabases">A complete shared database is already downloaded and trained</label>
+          <input id="haveDatabases" type="checkbox" />
+          <label for="haveDatabases">I already have the complete BBsplit 16S/18S database</label>
         </div>
+        <p class="small-muted">Leave this unchecked for a first-time setup. This choice controls the large BBsplit database used to separate 16S and 18S reads. SILVA 144 and PR2 classification resources are checked separately and any missing files are prepared automatically.</p>
 
         <div id="dbBlock" class="field-group">
-          <label for="database_dir">Shared database directory</label>
+          <strong id="databaseModeTitle">Database download/build destination</strong>
+          <label for="database_dir">Database storage directory</label>
           <input id="database_dir" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/" />
-          <div class="hint">Keep this outside the project clone. If the box above is unchecked, the workflow builds the databases here; if checked, it reuses the completed databases here.</div>
+          <div id="databaseModeDescription" class="hint">The pipeline will create this directory if needed, download and build the BBsplit database here, and download or prepare any missing SILVA 144 and PR2 classification resources. Keep it outside the project clone so future projects can reuse it.</div>
         </div>
 
         <div class="field-group">
