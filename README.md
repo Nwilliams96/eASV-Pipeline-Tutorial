@@ -40,3 +40,6 @@ The published tutorial is available at
 - Generated configs use SILVA 144 and the bundled QIIME 2 2026.7 environment
   definition. SILVA is fixed by the pipeline rather than exposed as a version
   control, keeping its classifier, taxonomy ranks, and downstream parser aligned.
+  The classifier assigns Domain through Genus; the pipeline adds provisional
+  Species labels only for unambiguous exact matches to SILVA's version 144
+  species reference when the matched genus agrees with the classifier result.

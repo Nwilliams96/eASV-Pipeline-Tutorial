@@ -10,4 +10,5 @@ test("generated projects use SILVA 144 and its compatible QIIME 2 environment", 
   assert.match(script, /const SILVA_VERSION = "144"/);
   assert.match(html, /rachis-qiime2-linux-64-2026\.7\.yml/);
   assert.match(html, /compatible with the official SILVA 144 classifier/);
+  assert.match(html, /unambiguous exact SILVA 144 sequence match/);
 });
