@@ -302,13 +302,18 @@ function markPrefilled() {
 }
 
 function updateDatabaseSetupText() {
-  const haveBbsplitDatabase = $("#haveDatabases").checked;
-  $("#databaseModeTitle").textContent = haveBbsplitDatabase
+  const states = [
+    [$("#haveBbsplitDatabase").checked, "BBsplit will be reused", "BBsplit will be downloaded and built"],
+    [$("#haveSilvaDatabase").checked, "SILVA 144 will be reused", "SILVA 144 will be downloaded"],
+    [$("#havePr2Database").checked, "PR2 will be reused", "PR2 will be downloaded and trained"]
+  ];
+  const allExisting = states.every(([exists]) => exists);
+  $("#databaseModeTitle").textContent = allExisting
     ? "Existing shared database location"
-    : "Database download/build destination";
-  $("#databaseModeDescription").textContent = haveBbsplitDatabase
-    ? "The pipeline will reuse the BBsplit database in this directory. It will also check for the release-pinned SILVA 144 and PR2 classification resources and download or prepare only those that are missing."
-    : "The pipeline will create this directory if needed, download and build the BBsplit database here, and download or prepare any missing SILVA 144 and PR2 classification resources. Keep it outside the project clone so future projects can reuse it.";
+    : "Shared database location and download/build destination";
+  $("#databaseModeDescription").textContent = `${states.map(
+    ([exists, reuseText, buildText]) => exists ? reuseText : buildText
+  ).join("; ")}.`;
 }
 
 function dada2ConfigLines() {
@@ -357,7 +362,9 @@ function validDada2Settings() {
 
 function buildConfigPreview() {
   const projectName = $("#projectName").value.trim();
-  const useDb = $("#haveDatabases").checked;
+  const useBbsplitDb = $("#haveBbsplitDatabase").checked;
+  const useSilvaDb = $("#haveSilvaDatabase").checked;
+  const usePr2Db = $("#havePr2Database").checked;
   const useInternalStandards = $("#intstdToggle").checked;
   const dbDir = $("#database_dir").value.trim();
   const condaEnvsDir = $("#conda_envs_dir").value.trim();
@@ -377,7 +384,9 @@ function buildConfigPreview() {
   parts.push(`samplesheet: "config/samples.tsv"`);
   parts.push(`projectName: "${projectName}"`);
   parts.push(`studyName: "${projectName}"`);
-  parts.push(`use_preexisting_databases: ${useDb}`);
+  parts.push(`use_preexisting_bbsplit_database: ${useBbsplitDb}`);
+  parts.push(`use_preexisting_silva_database: ${useSilvaDb}`);
+  parts.push(`use_preexisting_pr2_database: ${usePr2Db}`);
   parts.push(`database_dir: "${dbDir}"`);
   parts.push(`conda_envs_dir: "${condaEnvsDir}"`);
   parts.push(`rawdatadir: "${rawdatadir}"`);
@@ -537,9 +546,11 @@ function bindEvents() {
     });
   });
 
-  $("#haveDatabases").addEventListener("change", () => {
-    updateDatabaseSetupText();
-    updateAll();
+  ["#haveBbsplitDatabase", "#haveSilvaDatabase", "#havePr2Database"].forEach(selector => {
+    $(selector).addEventListener("change", () => {
+      updateDatabaseSetupText();
+      updateAll();
+    });
   });
 
   $("#qiimeToggle").addEventListener("change", () => {
@@ -774,7 +785,9 @@ function standardsToTSV() {
 }
 
 function configToYAML() {
-  const useDb = $("#haveDatabases").checked;
+  const useBbsplitDb = $("#haveBbsplitDatabase").checked;
+  const useSilvaDb = $("#haveSilvaDatabase").checked;
+  const usePr2Db = $("#havePr2Database").checked;
   const useInternalStandards = $("#intstdToggle").checked;
   const internalStandardIds = getInternalStandardIds();
   const projectName = $("#projectName").value.trim();
@@ -784,7 +797,9 @@ function configToYAML() {
     'samplesheet: "config/samples.tsv"',
     `projectName: "${projectName}"`,
     `studyName: "${projectName}"`,
-    `use_preexisting_databases: ${useDb}`,
+    `use_preexisting_bbsplit_database: ${useBbsplitDb}`,
+    `use_preexisting_silva_database: ${useSilvaDb}`,
+    `use_preexisting_pr2_database: ${usePr2Db}`,
     `database_dir: "${$("#database_dir").value.trim()}"`,
     `conda_envs_dir: "${$("#conda_envs_dir").value.trim()}"`,
     `rawdatadir: "${$("#rawdatadir").value.trim()}"`,

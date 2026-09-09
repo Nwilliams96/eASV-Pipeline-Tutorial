@@ -202,17 +202,29 @@ cd AMT29-analysis</pre>
       <p>Fill these fields to generate the <code>config/config.yml</code> file used by the Snakemake workflow.</p>
 
       <div class="panel-grid">
-        <div class="toggle-row">
-          <input id="haveDatabases" type="checkbox" />
-          <label for="haveDatabases">I already have the complete BBsplit 16S/18S database</label>
+        <div class="stack">
+          <h3>Database availability</h3>
+          <p class="small-muted">Select each database family that is already complete and compatible with this pipeline. Leave an item unchecked when it needs to be downloaded or built. This allows, for example, an existing BBsplit and PR2 setup to be reused while only SILVA 144 is downloaded.</p>
         </div>
-        <p class="small-muted">Leave this unchecked for a first-time setup. This choice controls the large BBsplit database used to separate 16S and 18S reads. SILVA 144 and PR2 classification resources are checked separately and any missing files are prepared automatically.</p>
+        <div class="toggle-row">
+          <input id="haveBbsplitDatabase" type="checkbox" />
+          <label for="haveBbsplitDatabase">BBsplit 16S/18S database is already available</label>
+        </div>
+        <div class="toggle-row">
+          <input id="haveSilvaDatabase" type="checkbox" />
+          <label for="haveSilvaDatabase">SILVA 144 classifier and species reference are already available</label>
+        </div>
+        <div class="toggle-row">
+          <input id="havePr2Database" type="checkbox" />
+          <label for="havePr2Database">PR2 classifier is already available</label>
+        </div>
 
         <div id="dbBlock" class="field-group">
           <strong id="databaseModeTitle">Database download/build destination</strong>
           <label for="database_dir">Database storage directory</label>
           <input id="database_dir" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/" />
-          <div id="databaseModeDescription" class="hint">The pipeline will create this directory if needed, download and build the BBsplit database here, and download or prepare any missing SILVA 144 and PR2 classification resources. Keep it outside the project clone so future projects can reuse it.</div>
+          <div id="databaseModeDescription" class="hint">BBsplit will be downloaded and built; SILVA 144 will be downloaded; and PR2 will be downloaded and trained. The pipeline creates the required subfolders under this shared path.</div>
+          <div class="hint">Keep this directory outside the project clone so future projects can reuse it. Snakemake always reuses a compatible output file that is already present.</div>
         </div>
 
         <div class="field-group">
@@ -780,6 +792,18 @@ properties:
   conda_envs_dir:
     type: string
     description: shared directory for reusable Snakemake rule environments
+  database_dir:
+    type: string
+    description: shared root for BBsplit, SILVA, and PR2 database subfolders
+  use_preexisting_bbsplit_database:
+    type: boolean
+    description: require and reuse the existing BBsplit database when true
+  use_preexisting_silva_database:
+    type: boolean
+    description: require and reuse the SILVA 144 classifier and species reference when true
+  use_preexisting_pr2_database:
+    type: boolean
+    description: require and reuse the primer-compatible PR2 classifier when true
   dada2:
     type: object
     properties:

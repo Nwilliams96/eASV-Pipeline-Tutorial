@@ -6,13 +6,16 @@ const test = require("node:test");
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 const script = fs.readFileSync(path.join(__dirname, "..", "js", "script.js"), "utf8");
 
-test("first-time database setup is explicit and defaults to building BBsplit", () => {
-  assert.match(html, /id="haveDatabases" type="checkbox"\s*\/>/);
-  assert.doesNotMatch(html, /id="haveDatabases"[^>]*checked/);
-  assert.match(html, /Leave this unchecked for a first-time setup/);
-  assert.match(html, /Database download\/build destination/);
+test("database families are independently selectable and default to setup", () => {
+  for (const id of ["haveBbsplitDatabase", "haveSilvaDatabase", "havePr2Database"]) {
+    assert.match(html, new RegExp(`id="${id}" type="checkbox"\\s*\\/>`));
+    assert.doesNotMatch(html, new RegExp(`id="${id}"[^>]*checked`));
+  }
+  assert.match(html, /Leave an item unchecked when it needs to be downloaded or built/);
+  assert.match(script, /Shared database location and download\/build destination/);
   assert.match(html, /Database storage directory/);
-  assert.match(script, /download and build the BBsplit database here/);
-  assert.match(script, /download or prepare only those that are missing/);
-  assert.match(script, /use_preexisting_databases: \$\{useDb\}/);
+  assert.match(script, /use_preexisting_bbsplit_database: \$\{useBbsplitDb\}/);
+  assert.match(script, /use_preexisting_silva_database: \$\{useSilvaDb\}/);
+  assert.match(script, /use_preexisting_pr2_database: \$\{usePr2Db\}/);
+  assert.match(html, /use_preexisting_silva_database:/);
 });
