@@ -304,25 +304,26 @@ cd AMT29-analysis</pre>
         </div>
 
         <div class="stack">
-          <h3>DADA2 read-length controls</h3>
-          <p class="small-muted">These lengths are used for paired 16S denoising and to trim each 18S read before R1 and R2 are concatenated. The presets are the pipeline's established values.</p>
+          <h3>18S pre-concatenation read-length controls</h3>
+          <p class="small-muted">These lengths apply only to the 18S path, where R1 and R2 are trimmed before being concatenated. Paired 16S reads are no longer truncated to a fixed length; DADA2 receives their full post-primer-removal lengths.</p>
         </div>
 
         <div class="two-col">
           <div class="field-group">
-            <label for="truncR1">Forward trim length</label>
+            <label for="truncR1">18S forward length before concatenation</label>
             <input id="truncR1" type="number" min="0" step="1" value="220" />
-            <div class="hint">Number of forward-read bases retained after primer removal. Longer values preserve sequence but may retain a poor-quality tail; reads shorter than this are discarded.</div>
+            <div class="hint">Number of forward-read bases retained only for the concatenated 18S analysis. Reads shorter than this are discarded from that path.</div>
           </div>
           <div class="field-group">
-            <label for="truncR2">Reverse trim length</label>
+            <label for="truncR2">18S reverse length before concatenation</label>
             <input id="truncR2" type="number" min="0" step="1" value="180" />
-            <div class="hint">Number of reverse-read bases retained. For paired 16S, the retained forward and reverse reads must still overlap sufficiently to merge.</div>
+            <div class="hint">Number of reverse-read bases retained only for the concatenated 18S analysis.</div>
           </div>
         </div>
 
         <div class="stack">
           <h3>16S DADA2 controls (paired reads)</h3>
+          <p class="small-muted">The default 16S fixed truncation lengths are both 0, so DADA2 receives the complete post-primer-removal forward and reverse reads. Expected-error filtering, quality-score truncation, merging, and chimera removal still apply.</p>
         </div>
 
         <div class="two-col">
@@ -812,6 +813,8 @@ properties:
         properties:
           max_ee_f: {type: number, minimum: 0}
           max_ee_r: {type: number, minimum: 0}
+          trunc_len_f: {type: integer, minimum: 0}
+          trunc_len_r: {type: integer, minimum: 0}
           trunc_q: {type: integer, minimum: 0}
           min_overlap: {type: integer, minimum: 4}
           pooling_method: {type: string, enum: [independent, pseudo]}
