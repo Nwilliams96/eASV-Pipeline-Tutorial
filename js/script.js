@@ -320,8 +320,8 @@ function dada2ConfigLines() {
   return [
     `dada2:`,
     `  prokaryotes:`,
-    `    trunc_len_f: 0`,
-    `    trunc_len_r: 0`,
+    `    trunc_len_f: 220`,
+    `    trunc_len_r: 180`,
     `    max_ee_f: ${$("#prokMaxEeF").value.trim()}`,
     `    max_ee_r: ${$("#prokMaxEeR").value.trim()}`,
     `    trunc_q: ${$("#prokTruncQ").value.trim()}`,
