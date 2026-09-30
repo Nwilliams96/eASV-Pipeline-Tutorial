@@ -158,7 +158,7 @@ function standardRowHTML(slot, data = {}) {
       <label class="field-label">Genome length in base pairs
         <input type="number" min="1" value="${escapeAttribute(v.genome)}">
       </label>
-      <label class="field-label">Full SSU rRNA gene sequence (16S or 18S)
+      <label class="field-label">Full sequence
         <textarea placeholder="Paste the complete nucleotide sequence">${escapeAttribute(v.sequence)}</textarea>
       </label>
     </div>`;
