@@ -158,7 +158,7 @@ function standardRowHTML(slot, data = {}) {
       <label class="field-label">Genome length in base pairs
         <input type="number" min="1" value="${escapeAttribute(v.genome)}">
       </label>
-      <label class="field-label">Full 16S sequence
+      <label class="field-label">Full SSU rRNA gene sequence (16S or 18S)
         <textarea placeholder="Paste the complete nucleotide sequence">${escapeAttribute(v.sequence)}</textarea>
       </label>
     </div>`;
@@ -427,7 +427,7 @@ function buildAmpliconPreview() {
 
 function buildStandardsPreview() {
   const standards = getStandardsData();
-  const lines = ["internal_std_ID\trRNA_copy_number\tgenome_len_bp\tfull_16S_sequence"];
+  const lines = ["internal_std_ID\trRNA_copy_number\tgenome_len_bp\tfull_SSU_sequence"];
   standards.forEach(s => lines.push(`${s.id}\t${s.copies}\t${s.genome}\t${s.seq}`));
   $("#standardsPreview").textContent = lines.join("\n");
 }
@@ -781,7 +781,7 @@ async function uploadSampleCsv(event) {
 }
 
 function standardsToTSV() {
-  const headers = ["internal_std_ID","rRNA_copy_number","genome_len_bp","full_16S_sequence"];
+  const headers = ["internal_std_ID","rRNA_copy_number","genome_len_bp","full_SSU_sequence"];
   const rows = getStandardsData().map(s => [s.id, s.copies, s.genome, s.seq]);
   return [headers.join("\t"), ...rows.map(r => r.join("\t"))].join("\n");
 }

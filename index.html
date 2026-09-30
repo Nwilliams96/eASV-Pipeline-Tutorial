@@ -263,7 +263,7 @@ cd AMT29-analysis</pre>
         </aside>
 
         <div id="intstdBlock" class="stack">
-          <aside class="note">BP, DR, and TT are preloaded as a convenient starting preset using our commonly used copy numbers, genome lengths, and full 16S sequences. Every value remains editable, and standards can be renamed, removed, or added.</aside>
+          <aside class="note">BP, DR, and TT are preloaded as a convenient starting preset using our commonly used copy numbers, genome lengths, and full SSU rRNA gene sequences. Every value remains editable, and 16S or 18S whole-genome standards can be renamed, removed, or added.</aside>
           <div class="hint">Add one row for every internal standard used. These exact names become the <code>&lt;name&gt;_ng</code> sample columns and are printed in the recovery-plot legend and correction-method labels.</div>
           <div id="intstdNamesWrap" class="standard-names-wrap"></div>
           <div class="actions compact-actions">
@@ -274,11 +274,11 @@ cd AMT29-analysis</pre>
 
           <div id="standards" class="stack">
             <h3>Internal standard information</h3>
-            <p>Enter the copy number, genome length, and complete 16S sequence for every named standard.</p>
+            <p>Enter the SSU rRNA copy number, whole-genome length, and complete 16S or 18S SSU rRNA gene sequence for every named standard. The pipeline automatically creates the concatenated reference needed to recognize an 18S standard after R1 and R2 processing.</p>
             <p class="small-muted">BP, DR, and TT are prefilled from the common preset. If you rename one, its preset definition is cleared so it cannot be mistaken for the newly named standard.</p>
             <aside class="note">
               <code>internal_stds.tsv</code> stores the definition that does not change between samples: the name,
-              rRNA copy number, genome length, and 16S sequence. <code>samples.tsv</code> stores what did change by
+              SSU rRNA copy number, whole-genome length, and SSU rRNA gene sequence. <code>samples.tsv</code> stores what did change by
               sample. The amount actually added can differ among samples:
               enter that mass in nanograms in each sample's matching <code>&lt;standard-name&gt;_ng</code> column.
               The normalization factor and unit also belong in the sample file; examples include volume filtered in

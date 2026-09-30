@@ -4,6 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+const script = fs.readFileSync(path.join(__dirname, "..", "js", "script.js"), "utf8");
 
 test("internal-standard correction is opt-in and carries a clear stopping warning", () => {
   const toggle = html.match(/<input id="intstdToggle"[^>]*>/)?.[0] || "";
@@ -18,4 +19,10 @@ test("primer and QIIME 2 controls have clearly labelled sections", () => {
   assert.match(html, /<h3>QIIME 2 environment<\/h3>/);
   assert.ok(html.indexOf("Primer sequences") < html.indexOf('id="fwdPrimer"'));
   assert.ok(html.indexOf("QIIME 2 environment") < html.indexOf('id="qiimeToggle"'));
+});
+
+test("internal-standard template accepts 16S and 18S SSU references", () => {
+  assert.match(html, /complete 16S or 18S SSU rRNA gene sequence/);
+  assert.match(script, /full_SSU_sequence/);
+  assert.doesNotMatch(script, /full_16S_sequence/);
 });
