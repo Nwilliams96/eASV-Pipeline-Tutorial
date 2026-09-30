@@ -171,6 +171,16 @@ function getInternalStandardIds() {
   return $$(".internal-standard-name").map(input => input.value.trim());
 }
 
+function requiredInternalStandardHeaders(ids) {
+  const blankIndex = ids.findIndex(id => !id);
+  if (blankIndex >= 0) {
+    throw new Error(
+      `Internal standard ${blankIndex + 1} has no name. Enter a name or select Remove beside that unused standard before uploading samples.`
+    );
+  }
+  return ids.map(id => `${id}_ng`);
+}
+
 function getStandardsData() {
   const ids = getInternalStandardIds();
   return $$(".standard-row").map((row, index) => {
@@ -757,7 +767,7 @@ async function uploadSampleCsv(event) {
     if (rows.length < 2) throw new Error("The TSV needs a header and at least one sample row.");
     const headers = rows[0].map((value, index) => index === 0 ? value.replace(/^\uFEFF/, "").trim() : value.trim());
     const standardHeaders = $("#intstdToggle").checked
-      ? getInternalStandardIds().map(id => `${id}_ng`)
+      ? requiredInternalStandardHeaders(getInternalStandardIds())
       : [];
     const uploadedExtraHeaders = classifySampleCsvHeaders(headers, standardHeaders);
     const dataRows = rows.slice(1);

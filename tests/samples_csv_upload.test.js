@@ -11,6 +11,18 @@ vm.runInContext(source, context, { filename: scriptPath });
 
 const parseTSV = vm.runInContext("parseTSV", context);
 const classifySampleCsvHeaders = vm.runInContext("classifySampleCsvHeaders", context);
+const requiredInternalStandardHeaders = vm.runInContext("requiredInternalStandardHeaders", context);
+
+test("explains a blank internal-standard name before checking TSV columns", () => {
+  assert.throws(
+    () => requiredInternalStandardHeaders(["SP", "TT", ""]),
+    /Internal standard 3 has no name.*Remove/
+  );
+  assert.deepEqual(
+    Array.from(requiredInternalStandardHeaders(["SP", "TT"])),
+    ["SP_ng", "TT_ng"]
+  );
+});
 
 test("accepts a downloaded sample TSV with an added temperature column", () => {
   const tsv = [
