@@ -26,3 +26,12 @@ test("internal-standard template accepts 16S and 18S SSU references", () => {
   assert.match(script, /full_SSU_sequence/);
   assert.doesNotMatch(script, /full_16S_sequence/);
 });
+
+test("each internal-standard name has its own remove control", () => {
+  assert.match(script, /data-remove-standard-at="\$\{index\}"/);
+  assert.match(script, /function removeInternalStandardAt\(index\)/);
+  assert.match(script, /standards\.splice\(index, 1\)/);
+  assert.match(script, /record\.standards\.splice\(index, 1\)/);
+  assert.doesNotMatch(html, /Remove last standard/);
+  assert.match(html, /Remove<\/strong> beside any unused preset/);
+});

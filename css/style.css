@@ -419,6 +419,15 @@ pre {
   display: grid;
   gap: 6px;
 }
+.standard-name-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: stretch;
+}
+.standard-name-remove {
+  min-width: 88px;
+}
 .compact-actions {
   margin-top: 4px;
 }

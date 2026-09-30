@@ -138,7 +138,10 @@ function standardNameRowHTML(index, name = "") {
   return `
     <div class="standard-name-row">
       <label for="intstd-${index}">Internal standard ${index + 1} name (shown on figures)</label>
-      <input id="intstd-${index}" class="internal-standard-name" type="text" value="${escapeAttribute(name)}" data-current-name="${escapeAttribute(name)}" />
+      <div class="standard-name-input-row">
+        <input id="intstd-${index}" class="internal-standard-name" type="text" value="${escapeAttribute(name)}" data-current-name="${escapeAttribute(name)}" />
+        <button class="secondary standard-name-remove" type="button" data-remove-standard-at="${index}" aria-label="Remove internal standard ${index + 1}">Remove</button>
+      </div>
     </div>`;
 }
 
@@ -284,6 +287,19 @@ function changeInternalStandardCount(delta) {
     standards.pop();
     records.forEach(record => record.standards.pop());
   }
+  renderStandardSections(standards);
+  renderSampleHeader();
+  renderSampleRecords(records);
+  updateAll();
+}
+
+function removeInternalStandardAt(index) {
+  const records = captureSampleRecords();
+  const standards = captureStandardDefinitions();
+  if (standards.length <= 1 || index < 0 || index >= standards.length) return;
+
+  standards.splice(index, 1);
+  records.forEach(record => record.standards.splice(index, 1));
   renderStandardSections(standards);
   renderSampleHeader();
   renderSampleRecords(records);
@@ -464,7 +480,7 @@ function updateAll() {
   $$('[data-intstd-column]').forEach((heading, index) => {
     heading.textContent = `${ids[index] || `internal_standard_${index + 1}`}_ng`;
   });
-  $$('[data-remove-standard]').forEach(button => {
+  $$('[data-remove-standard-at]').forEach(button => {
     button.disabled = ids.length <= 1;
   });
   buildClonePreview();
@@ -588,8 +604,10 @@ function bindEvents() {
   $$('[data-add-standard]').forEach(button => {
     button.addEventListener("click", () => changeInternalStandardCount(1));
   });
-  $$('[data-remove-standard]').forEach(button => {
-    button.addEventListener("click", () => changeInternalStandardCount(-1));
+  document.body.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-remove-standard-at]");
+    if (!button) return;
+    removeInternalStandardAt(Number.parseInt(button.dataset.removeStandardAt, 10));
   });
 
   document.body.addEventListener("input", (e) => {
