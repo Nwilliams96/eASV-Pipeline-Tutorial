@@ -771,7 +771,7 @@ async function uploadSampleCsv(event) {
       : [];
     const uploadedExtraHeaders = classifySampleCsvHeaders(headers, standardHeaders);
     const dataRows = rows.slice(1);
-    if (dataRows.length > 500) throw new Error("The tutorial supports up to 500 sample rows.");
+    if (dataRows.length > 500) throw new Error("The configuration page supports up to 500 sample rows.");
     if (dataRows.some(values => values.length !== headers.length)) {
       throw new Error("Every sample row must have the same number of columns as the template.");
     }

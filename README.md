@@ -1,9 +1,9 @@
 # Universal Amplicon Website v3
 
-This repository contains the tutorial and configuration builder for the
+This repository contains the configuration builder for the
 [515Y–926R eASV Snakemake pipeline](https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits).
 
-The published tutorial is available at
+The published configuration page is available at
 [www.nathanlrwilliams.com/eASV-Pipeline-Tutorial](https://www.nathanlrwilliams.com/eASV-Pipeline-Tutorial/).
 
 ## Files
