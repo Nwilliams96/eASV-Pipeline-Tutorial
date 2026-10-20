@@ -37,14 +37,30 @@ The published configuration page is available at
   clone, allowing Snakemake to reuse unchanged rule environments across projects.
 - Primer sequences and the QIIME 2 environment are presented as their own
   labelled configuration sections so these required settings are easy to find.
-- Generated configs use SILVA 144 and the bundled QIIME 2 2026.7 environment
-  definition. SILVA is fixed by the pipeline rather than exposed as a version
-  control, keeping its classifier, taxonomy ranks, and downstream parser aligned.
-  The classifier assigns Domain through Genus; the pipeline adds provisional
-  Species labels only for unambiguous exact matches to SILVA's version 144
-  species reference when the matched genus agrees with the classifier result.
-- BBsplit, SILVA 144, and PR2 have independent availability controls. Users
-  select only the database families that are already complete and leave any
-  missing family unchecked. One shared database root is used, with independent
-  subfolders and preparation rules, so a single family can be added or updated
-  without rebuilding the others.
+- SILVA and PR2 independently offer three methods: use an existing classifier,
+  download a pre-trained classifier, or train from a selected reference release
+  with RESCRIPt. Only the chosen method's fields are shown and serialized;
+  switching methods preserves the entered values for later use.
+- Defaults download the official SILVA 144 classifier and train PR2 5.1.1 with
+  the bundled QIIME 2 2026.7 environment. Reference releases remain editable and
+  visible for all methods so reports can record the declared version. Native
+  SILVA 144 acquisition is not yet supported by the supplied RESCRIPt environment;
+  its training option displays a warning but still permits configuration export.
+- Download and training destinations can be selected separately for SILVA and
+  PR2. The shared `database_dir` stores BBsplit and supporting files such as the
+  SILVA 144 exact-species reference. Existing classifiers are read from the exact
+  supplied path without requiring write access beside that file.
+- The official SILVA 144 preset follows the primers: 515Y/926R uses its
+  region-specific classifier; other primers select its full-length classifier.
+  The preset URL and checksum stay synchronized. Custom URLs are never rewritten
+  and do not inherit an unrelated preset checksum. Supplied classifiers must be
+  compatible with the selected environment and intended analysis.
+- Local training extracts the configured primer region by default. Advanced
+  users can add `silva_reference_mode: "full_length"` or
+  `pr2_reference_mode: "full_length"` to config.yml to skip extraction for that
+  database. These settings do not change a downloaded classifier.
+- For SILVA 144 the pipeline adds provisional Species labels only for
+  unambiguous exact matches to the matching species reference when the matched
+  genus agrees with the classifier result. Other SILVA releases skip this step.
+- BBsplit retains its separate availability checkbox. It can be built or reused
+  independently of either taxonomy classifier.

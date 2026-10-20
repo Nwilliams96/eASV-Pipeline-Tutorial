@@ -203,28 +203,86 @@ cd AMT29-analysis</pre>
 
       <div class="panel-grid">
         <div class="stack">
-          <h3>Database availability</h3>
-          <p class="small-muted">Select each database family that is already complete and compatible with this pipeline. Leave an item unchecked when it needs to be downloaded or built. This allows, for example, an existing BBsplit and PR2 setup to be reused while only SILVA 144 is downloaded.</p>
+          <h3>Reference databases</h3>
+          <p class="small-muted">Choose independently how to obtain SILVA and PR2 classifiers. Completed compatible databases can be reused across projects. BBsplit, which separates 16S and 18S reads, has its own setting below.</p>
         </div>
         <div class="toggle-row">
           <input id="haveBbsplitDatabase" type="checkbox" />
           <label for="haveBbsplitDatabase">BBsplit 16S/18S database is already available</label>
         </div>
-        <div class="toggle-row">
-          <input id="haveSilvaDatabase" type="checkbox" />
-          <label for="haveSilvaDatabase">SILVA 144 classifier and species reference are already available</label>
-        </div>
-        <div class="toggle-row">
-          <input id="havePr2Database" type="checkbox" />
-          <label for="havePr2Database">PR2 classifier is already available</label>
+        <div id="dbBlock" class="field-group">
+          <strong id="databaseModeTitle">BBsplit and supporting reference location</strong>
+          <label for="database_dir">BBsplit and supporting reference storage directory</label>
+          <input id="database_dir" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/" />
+          <div id="databaseModeDescription" class="hint">BBsplit will be downloaded and built under this shared path. Supporting references, including the separate SILVA 144 exact-species reference, are also stored here.</div>
+          <div class="hint">Keep database directories outside the project clone so future projects can reuse them. A reusable classifier may be read from another location without writing beside it.</div>
         </div>
 
-        <div id="dbBlock" class="field-group">
-          <strong id="databaseModeTitle">Database download/build destination</strong>
-          <label for="database_dir">Database storage directory</label>
-          <input id="database_dir" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/" />
-          <div id="databaseModeDescription" class="hint">BBsplit will be downloaded and built; SILVA 144 will be downloaded; and PR2 will be downloaded and trained. The pipeline creates the required subfolders under this shared path.</div>
-          <div class="hint">Keep this directory outside the project clone so future projects can reuse it. Snakemake always reuses a compatible output file that is already present.</div>
+        <div class="stack" aria-labelledby="silvaDatabaseHeading">
+          <h3 id="silvaDatabaseHeading">SILVA classifier</h3>
+          <div class="field-group">
+            <label for="silvaDatabaseMode">How should SILVA be obtained?</label>
+            <select id="silvaDatabaseMode">
+              <option value="existing">Use existing databases</option>
+              <option value="download" selected>Download pre-trained database</option>
+              <option value="train">Train database with RESCRIPt</option>
+            </select>
+            <label for="silvaVersion">SILVA reference version</label>
+            <input id="silvaVersion" type="text" value="144" />
+            <div class="hint">Enter the release represented by your classifier or reference. A URL or filename alone does not verify its release.</div>
+          </div>
+          <div id="silvaExistingFields" class="field-group hidden">
+            <label for="silvaClassifier">Existing SILVA classifier path (.qza)</label>
+            <input id="silvaClassifier" type="text" placeholder="/path/to/existing/SILVA.classifier.qza" />
+            <div class="hint">The pipeline validates and reads this exact file; it does not download or train a replacement.</div>
+          </div>
+          <div id="silvaDownloadFields" class="field-group">
+            <label for="silvaDownloadLink">Pre-trained SILVA classifier URL</label>
+            <input id="silvaDownloadLink" type="url" value="https://www.arb-silva.de/fileadmin/silva_databases/release_144/QIIME2/2026.7/SSU/V4V5-515f-926r/uniform/SILVA_144_SSURef_NR99_uniform_classifier_V4V5-515f-926r.qza" />
+            <div class="hint">Use a TaxonomicClassifier .qza compatible with your QIIME 2 environment and intended analysis. The official SILVA 144 preset follows the primer selection; a custom URL is kept exactly as entered.</div>
+          </div>
+          <div id="silvaTrainingFields" class="field-group hidden">
+            <div class="hint">RESCRIPt downloads the selected reference release, then the separate preparation rules train a classifier. Primer-region training is the default; advanced users can set <code>silva_reference_mode: "full_length"</code> in config.yml.</div>
+            <div id="silvaTrainingWarning" class="notice">The supplied RESCRIPt environment cannot yet download SILVA 144 for training. Use the pre-trained 144 download, select a supported older release, or supply an environment that supports your chosen release. You can still generate this configuration.</div>
+          </div>
+          <div id="silvaDestinationFields" class="field-group">
+            <label id="silvaDatabaseDirLabel" for="silvaDatabaseDir">SILVA download destination directory</label>
+            <input id="silvaDatabaseDir" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/classification/SILVA" />
+            <div class="hint">Store the completed classifier outside this project clone so future projects can reuse it.</div>
+          </div>
+        </div>
+
+        <div class="stack" aria-labelledby="pr2DatabaseHeading">
+          <h3 id="pr2DatabaseHeading">PR2 classifier</h3>
+          <div class="field-group">
+            <label for="pr2DatabaseMode">How should PR2 be obtained?</label>
+            <select id="pr2DatabaseMode">
+              <option value="existing">Use existing databases</option>
+              <option value="download">Download pre-trained database</option>
+              <option value="train" selected>Train database with RESCRIPt</option>
+            </select>
+            <label for="pr2Version">PR2 reference version</label>
+            <input id="pr2Version" type="text" value="5.1.1" />
+            <div class="hint">Enter the release represented by your classifier or the reference release you wish to download and train.</div>
+          </div>
+          <div id="pr2ExistingFields" class="field-group hidden">
+            <label for="pr2Classifier">Existing PR2 classifier path (.qza)</label>
+            <input id="pr2Classifier" type="text" placeholder="/path/to/existing/PR2.classifier.qza" />
+            <div class="hint">The pipeline validates and reads this exact file; it does not download or train a replacement.</div>
+          </div>
+          <div id="pr2DownloadFields" class="field-group hidden">
+            <label for="pr2DownloadLink">Pre-trained PR2 classifier URL</label>
+            <input id="pr2DownloadLink" type="url" placeholder="https://example.org/PR2.classifier.qza" />
+            <div class="hint">Use a TaxonomicClassifier .qza compatible with your QIIME 2 environment and intended analysis. The declared release is recorded in the report.</div>
+          </div>
+          <div id="pr2TrainingFields" class="field-group">
+            <div class="hint">RESCRIPt downloads the selected reference release, then the separate preparation rules train a classifier. Primer-region training is the default; advanced users can set <code>pr2_reference_mode: "full_length"</code> in config.yml.</div>
+          </div>
+          <div id="pr2DestinationFields" class="field-group">
+            <label id="pr2DatabaseDirLabel" for="pr2DatabaseDir">PR2 trained classifier destination directory</label>
+            <input id="pr2DatabaseDir" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/classification/PR2" />
+            <div class="hint">Store the completed classifier outside this project clone so future projects can reuse it.</div>
+          </div>
         </div>
 
         <div class="field-group">
@@ -794,13 +852,59 @@ properties:
     description: shared directory for reusable Snakemake rule environments
   database_dir:
     type: string
-    description: shared root for BBsplit, SILVA, and PR2 database subfolders
+    description: shared root for BBsplit and supporting reference files
+  SILVAversion:
+    type: string
+    minLength: 1
+    pattern: '^[0-9]+(?:\.[0-9]+)*$'
+    description: declared SILVA reference release
+  PR2version:
+    type: string
+    minLength: 1
+    pattern: '^[0-9]+(?:\.[0-9]+)*$'
+    description: declared PR2 reference release
+  silva_classifier:
+    type: string
+    minLength: 1
+    description: exact existing SILVA classifier path
+  pr2_classifier:
+    type: string
+    minLength: 1
+    description: exact existing PR2 classifier path
+  silva_database_dir:
+    type: string
+    minLength: 1
+    description: destination directory for a downloaded or trained SILVA classifier
+  pr2_database_dir:
+    type: string
+    minLength: 1
+    description: destination directory for a downloaded or trained PR2 classifier
+  SILVA_download_link:
+    type: string
+    description: pre-trained SILVA classifier URL; omit to select local training
+  PR2_download_link:
+    type: string
+    description: pre-trained PR2 classifier URL; omit to select local training
+  SILVA_download_md5:
+    type: string
+    pattern: "^[A-Fa-f0-9]{32}$"
+  PR2_download_md5:
+    type: string
+    pattern: "^[A-Fa-f0-9]{32}$"
+  silva_reference_mode:
+    type: string
+    enum: [amplicon, full_length]
+    description: local training region only; defaults to amplicon
+  pr2_reference_mode:
+    type: string
+    enum: [amplicon, full_length]
+    description: local training region only; defaults to amplicon
   use_preexisting_bbsplit_database:
     type: boolean
     description: require and reuse the existing BBsplit database when true
   use_preexisting_silva_database:
     type: boolean
-    description: require and reuse the SILVA 144 classifier and species reference when true
+    description: require and reuse the existing SILVA classifier when true
   use_preexisting_pr2_database:
     type: boolean
     description: require and reuse the primer-compatible PR2 classifier when true

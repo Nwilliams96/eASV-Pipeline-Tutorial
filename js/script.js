@@ -1,9 +1,18 @@
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const PIPELINE_REPOSITORY = "https://github.com/Nwilliams96/515FY-926R-snakemake-NW-edits.git";
-// SILVA is intentionally fixed here so every generated project uses the
-// classifier version supported by the pipeline and its taxonomy parser.
-const SILVA_VERSION = "144";
+// Keep official URLs and their checksums together. Custom URLs are never
+// rewritten and do not inherit a checksum belonging to another file.
+const SILVA_DOWNLOAD_PRESETS = {
+  amplicon: {
+    url: "https://www.arb-silva.de/fileadmin/silva_databases/release_144/QIIME2/2026.7/SSU/V4V5-515f-926r/uniform/SILVA_144_SSURef_NR99_uniform_classifier_V4V5-515f-926r.qza",
+    md5: "f7757b01eb82e0ac78bf06427e410095"
+  },
+  full_length: {
+    url: "https://www.arb-silva.de/fileadmin/silva_databases/release_144/QIIME2/2026.7/SSU/full-length/uniform/SILVA_144_SSURef_NR99_full-length_prokaryotes_rank-propagation_uniq_genus_uniform_classifier.qza",
+    md5: "e16b9bc78dafa2f344563e570bbf25ba"
+  }
+};
 let lastSuggestedTransferInput = "";
 const SAMPLE_PREFIX_HEADERS = ["sample"];
 const DEFAULT_SAMPLE_METADATA = {
@@ -328,18 +337,100 @@ function markPrefilled() {
 }
 
 function updateDatabaseSetupText() {
-  const states = [
-    [$("#haveBbsplitDatabase").checked, "BBsplit will be reused", "BBsplit will be downloaded and built"],
-    [$("#haveSilvaDatabase").checked, "SILVA 144 will be reused", "SILVA 144 will be downloaded"],
-    [$("#havePr2Database").checked, "PR2 will be reused", "PR2 will be downloaded and trained"]
+  $("#databaseModeTitle").textContent = "BBsplit and supporting reference location";
+  $("#databaseModeDescription").textContent = (
+    $("#haveBbsplitDatabase").checked
+      ? "BBsplit will be reused. "
+      : "BBsplit will be downloaded and built. "
+  ) + "Supporting references, including the separate SILVA 144 exact-species reference, use this directory.";
+
+  for (const database of ["silva", "pr2"]) {
+    const mode = $(`#${database}DatabaseMode`).value;
+    setVisible(`${database}ExistingFields`, mode === "existing");
+    setVisible(`${database}DownloadFields`, mode === "download");
+    setVisible(`${database}TrainingFields`, mode === "train");
+    setVisible(`${database}DestinationFields`, mode !== "existing");
+    $(`#${database}DatabaseDirLabel`).textContent = `${database === "silva" ? "SILVA" : "PR2"} ${
+      mode === "train" ? "trained classifier" : "download"
+    } destination directory`;
+  }
+  setVisible("silvaTrainingWarning", $("#silvaVersion").value.trim() === "144");
+}
+
+function syncSilvaDownloadPreset() {
+  const urlField = $("#silvaDownloadLink");
+  // Recognize only our known presets. A user's URL (including an empty URL)
+  // remains untouched when they alter primers or switch acquisition modes.
+  const isPreset = Object.values(SILVA_DOWNLOAD_PRESETS).some(
+    preset => preset.url === urlField.value.trim()
+  );
+  if (!isPreset || $("#silvaVersion").value.trim() !== "144") return;
+  const defaultPrimers = $("#fwdPrimer").value.trim() === "GTGYCAGCMGCCGCGGTAA"
+    && $("#revPrimer").value.trim() === "CCGYCAATTYMTTTRAGTTT";
+  urlField.value = SILVA_DOWNLOAD_PRESETS[defaultPrimers ? "amplicon" : "full_length"].url;
+}
+
+function databaseSettings(database) {
+  return {
+    mode: $(`#${database}DatabaseMode`).value,
+    version: $(`#${database}Version`).value.trim(),
+    classifier: $(`#${database}Classifier`).value.trim(),
+    url: $(`#${database}DownloadLink`).value.trim(),
+    directory: $(`#${database}DatabaseDir`).value.trim()
+  };
+}
+
+function validDatabaseSettings(database) {
+  const settings = databaseSettings(database);
+  // Match the pipeline release resolver: accept releases such as 144 or 5.1.1,
+  // never free text that could become an invalid download/build identifier.
+  if (!/^[0-9]+(?:\.[0-9]+)*$/.test(settings.version)) return false;
+  if (settings.mode === "existing") return settings.classifier.length > 0;
+  if (!settings.directory) return false;
+  if (settings.mode === "train") return true;
+  if (settings.mode !== "download") return false;
+  try {
+    const url = new URL(settings.url);
+    if (!["https:", "http:"].includes(url.protocol)) return false;
+  } catch {
+    return false;
+  }
+  // The managed official preset is SILVA 144. Other versions need a matching
+  // custom URL rather than silently mislabelling this known file.
+  const officialPreset = database === "silva" && Object.values(SILVA_DOWNLOAD_PRESETS).some(
+    preset => preset.url === settings.url
+  );
+  return !officialPreset || settings.version === "144";
+}
+
+function databaseConfigLines() {
+  // This is the only database serializer used by preview and ZIP downloads.
+  // JSON string quoting is also valid YAML and preserves spaces/backslashes.
+  const lines = [
+    `use_preexisting_bbsplit_database: ${$("#haveBbsplitDatabase").checked}`,
+    `database_dir: ${JSON.stringify($("#database_dir").value.trim())}`
   ];
-  const allExisting = states.every(([exists]) => exists);
-  $("#databaseModeTitle").textContent = allExisting
-    ? "Existing shared database location"
-    : "Shared database location and download/build destination";
-  $("#databaseModeDescription").textContent = `${states.map(
-    ([exists, reuseText, buildText]) => exists ? reuseText : buildText
-  ).join("; ")}.`;
+  for (const database of ["silva", "pr2"]) {
+    const settings = databaseSettings(database);
+    const prefix = database === "silva" ? "SILVA" : "PR2";
+    lines.push(`${prefix}version: ${JSON.stringify(settings.version)}`);
+    lines.push(`use_preexisting_${database}_database: ${settings.mode === "existing"}`);
+    if (settings.mode === "existing") {
+      lines.push(`${database}_classifier: ${JSON.stringify(settings.classifier)}`);
+    } else {
+      lines.push(`${database}_database_dir: ${JSON.stringify(settings.directory)}`);
+      if (settings.mode === "download") {
+        lines.push(`${prefix}_download_link: ${JSON.stringify(settings.url)}`);
+        const preset = database === "silva" && Object.values(SILVA_DOWNLOAD_PRESETS).find(
+          item => item.url === settings.url
+        );
+        if (preset && settings.version === "144") {
+          lines.push(`${prefix}_download_md5: ${JSON.stringify(preset.md5)}`);
+        }
+      }
+    }
+  }
+  return lines;
 }
 
 function dada2ConfigLines() {
@@ -389,55 +480,7 @@ function validDada2Settings() {
 }
 
 function buildConfigPreview() {
-  const projectName = $("#projectName").value.trim();
-  const useBbsplitDb = $("#haveBbsplitDatabase").checked;
-  const useSilvaDb = $("#haveSilvaDatabase").checked;
-  const usePr2Db = $("#havePr2Database").checked;
-  const useInternalStandards = $("#intstdToggle").checked;
-  const dbDir = $("#database_dir").value.trim();
-  const condaEnvsDir = $("#conda_envs_dir").value.trim();
-  const rawdatadir = $("#rawdatadir").value.trim();
-  const R1file_ending = $("#R1file_ending").value.trim();
-  const R2file_ending = $("#R2file_ending").value.trim();
-  const internalStandardIds = getInternalStandardIds();
-  const truncR1 = $("#truncR1").value.trim();
-  const truncR2 = $("#truncR2").value.trim();
-  const fwdPrimer = $("#fwdPrimer").value.trim();
-  const revPrimer = $("#revPrimer").value.trim();
-  const qiime2version = $("#qiime2version").value.trim();
-
-  const parts = [];
-  parts.push(`# make sure variables below point to the right place / are named appropriately`);
-  parts.push(``);
-  parts.push(`samplesheet: "config/samples.tsv"`);
-  parts.push(`projectName: "${projectName}"`);
-  parts.push(`studyName: "${projectName}"`);
-  parts.push(`use_preexisting_bbsplit_database: ${useBbsplitDb}`);
-  parts.push(`use_preexisting_silva_database: ${useSilvaDb}`);
-  parts.push(`use_preexisting_pr2_database: ${usePr2Db}`);
-  parts.push(`database_dir: "${dbDir}"`);
-  parts.push(`conda_envs_dir: "${condaEnvsDir}"`);
-  parts.push(`rawdatadir: "${rawdatadir}"`);
-  parts.push(`R1file_ending: "${R1file_ending}"`);
-  parts.push(`R2file_ending: "${R2file_ending}"`);
-  parts.push(``);
-  parts.push(`use_internal_standards: ${useInternalStandards}`);
-  if (useInternalStandards) {
-    parts.push(`intstds:`);
-    internalStandardIds.forEach(id => parts.push(`  - "${id}"`));
-    parts.push(``);
-  }
-  parts.push(`trunclens:`);
-  parts.push(`  truncR1: ${truncR1}`);
-  parts.push(`  truncR2: ${truncR2}`);
-  parts.push(``);
-  parts.push(...dada2ConfigLines());
-  parts.push(``);
-  parts.push(`fwdPrimer: "${fwdPrimer}"`);
-  parts.push(`revPrimer: "${revPrimer}"`);
-  parts.push(`qiime2version: "${qiime2version}"`);
-  parts.push(`SILVAversion: "${SILVA_VERSION}"`);
-  $("#configPreview").textContent = parts.join("\n");
+  $("#configPreview").textContent = configToYAML();
 }
 
 function buildSamplesPreview() {
@@ -468,6 +511,8 @@ function buildValidation() {
   const checks = [
     { label: "Valid project and directory name", ok: /^[A-Za-z0-9._-]+$/.test($("#projectName").value.trim()) },
     { label: "Shared database directory entered", ok: $("#database_dir").value.trim().length > 0 },
+    { label: "SILVA: complete the selected database method and matching release", ok: validDatabaseSettings("silva") },
+    { label: "PR2: complete the selected database method and matching release", ok: validDatabaseSettings("pr2") },
     { label: "Shared Conda environment directory entered", ok: $("#conda_envs_dir").value.trim().length > 0 },
     { label: "Raw data location entered", ok: $("#rawdatadir").value.trim().length > 0 },
     { label: "Forward primer entered", ok: $("#fwdPrimer").value.trim().length > 0 },
@@ -483,6 +528,8 @@ function buildValidation() {
 }
 
 function updateAll() {
+  syncSilvaDownloadPreset();
+  updateDatabaseSetupText();
   const ids = getInternalStandardIds();
   $$(".standard-id-label").forEach((label, index) => {
     label.textContent = ids[index] || `Standard ${index + 1}`;
@@ -574,7 +621,7 @@ function bindEvents() {
     });
   });
 
-  ["#haveBbsplitDatabase", "#haveSilvaDatabase", "#havePr2Database"].forEach(selector => {
+  ["#haveBbsplitDatabase"].forEach(selector => {
     $(selector).addEventListener("change", () => {
       updateDatabaseSetupText();
       updateAll();
@@ -815,9 +862,6 @@ function standardsToTSV() {
 }
 
 function configToYAML() {
-  const useBbsplitDb = $("#haveBbsplitDatabase").checked;
-  const useSilvaDb = $("#haveSilvaDatabase").checked;
-  const usePr2Db = $("#havePr2Database").checked;
   const useInternalStandards = $("#intstdToggle").checked;
   const internalStandardIds = getInternalStandardIds();
   const projectName = $("#projectName").value.trim();
@@ -827,10 +871,7 @@ function configToYAML() {
     'samplesheet: "config/samples.tsv"',
     `projectName: "${projectName}"`,
     `studyName: "${projectName}"`,
-    `use_preexisting_bbsplit_database: ${useBbsplitDb}`,
-    `use_preexisting_silva_database: ${useSilvaDb}`,
-    `use_preexisting_pr2_database: ${usePr2Db}`,
-    `database_dir: "${$("#database_dir").value.trim()}"`,
+    ...databaseConfigLines(),
     `conda_envs_dir: "${$("#conda_envs_dir").value.trim()}"`,
     `rawdatadir: "${$("#rawdatadir").value.trim()}"`,
     `R1file_ending: "${$("#R1file_ending").value.trim()}"`,
@@ -850,8 +891,7 @@ function configToYAML() {
     '',
     `fwdPrimer: "${$("#fwdPrimer").value.trim()}"`,
     `revPrimer: "${$("#revPrimer").value.trim()}"`,
-    `qiime2version: "${$("#qiime2version").value.trim()}"`,
-    `SILVAversion: "${SILVA_VERSION}"`
+    `qiime2version: "${$("#qiime2version").value.trim()}"`
   ].join("\n");
 }
 
