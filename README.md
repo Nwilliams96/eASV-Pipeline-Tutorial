@@ -37,6 +37,11 @@ The published configuration page is available at
   clone, allowing Snakemake to reuse unchanged rule environments across projects.
 - Primer sequences and the QIIME 2 environment are presented as their own
   labelled configuration sections so these required settings are easy to find.
+- The QIIME 2 section warns that existing/downloaded SILVA and PR2 classifiers
+  must both be compatible with the selected QIIME 2 and scikit-learn environment.
+  `qiime2version` accepts an environment-definition YAML path, not an installed
+  Conda environment name; Snakemake creates/reuses its managed rule environment
+  from that definition. An environment's name alone does not verify compatibility.
 - SILVA and PR2 independently offer three methods: use an existing classifier,
   download a pre-trained classifier, or train from a selected reference release
   with RESCRIPt. Only the chosen method's fields are shown and serialized;

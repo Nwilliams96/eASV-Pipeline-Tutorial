@@ -514,14 +514,28 @@ cd AMT29-analysis</pre>
           <p class="small-muted">Choose whether to use an existing QIIME 2 environment definition and provide its location. This environment runs DADA2, taxonomy classification, and QIIME 2 artifact processing. The supplied QIIME 2 2026.7 definition is compatible with the official SILVA 144 classifier used by the pipeline. The classifier assigns Domain through Genus; the pipeline then adds a provisional Species label only for an unambiguous exact SILVA 144 sequence match whose genus agrees with that assignment. Unmatched or ambiguous ASVs remain blank at Species.</p>
         </div>
 
+        <aside class="note" id="qiimeCompatibilityNotice">
+          <strong>Check QIIME 2 and scikit-learn compatibility with your chosen classifiers.</strong>
+          For existing or downloaded SILVA and PR2 classifiers, use a compatible QIIME 2 release and
+          the same scikit-learn version used to train each classifier. Check the classifier provider's
+          requirements: this pipeline uses one QIIME 2 environment for both databases, so it must
+          support both classifiers. A matching Conda environment name alone does not guarantee compatibility.
+          <p><code>qiime2version</code> is the path to an environment-definition YAML file
+          (<code>.yml</code>), not a version number or an installed Conda environment name.
+          With <code>--use-conda</code>, Snakemake creates or reuses its managed environment from
+          that definition; simply activating a similarly named environment does not select it for these rules.
+          If you train a classifier locally, training and classification use this same definition.</p>
+          <p><strong><a href="https://library.qiime2.org/data-resources" target="_blank" rel="noopener noreferrer">QIIME 2 classifier compatibility guidance</a></strong></p>
+        </aside>
+
         <div class="toggle-row">
           <input id="qiimeToggle" type="checkbox" checked />
           <label for="qiimeToggle">Do you have QIIME 2 installed?</label>
         </div>
 
         <div id="qiimeBlock" class="field-group">
-          <label for="qiime2version">QIIME 2 version / location</label>
-          <input id="qiime2version" type="text" value="../envs/rachis-qiime2-linux-64-2026.7.yml" />
+          <label for="qiime2version">QIIME 2 environment definition path (.yml)</label>
+          <input id="qiime2version" type="text" value="../envs/rachis-qiime2-linux-64-2026.7.yml" aria-describedby="qiimeCompatibilityNotice" />
         </div>
 
       </div>
