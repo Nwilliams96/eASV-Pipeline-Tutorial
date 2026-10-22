@@ -223,20 +223,20 @@ cd AMT29-analysis</pre>
           <div class="field-group">
             <label for="silvaDatabaseMode">How should SILVA be obtained?</label>
             <select id="silvaDatabaseMode">
-              <option value="existing">Use existing databases</option>
-              <option value="download" selected>Download pre-trained database</option>
+              <option value="existing" selected>Use existing databases</option>
+              <option value="download">Download pre-trained database</option>
               <option value="train">Train database with RESCRIPt</option>
             </select>
             <label for="silvaVersion">SILVA reference version</label>
             <input id="silvaVersion" type="text" value="144" />
             <div class="hint">Enter the release represented by your classifier or reference. A URL or filename alone does not verify its release.</div>
           </div>
-          <div id="silvaExistingFields" class="field-group hidden">
+          <div id="silvaExistingFields" class="field-group">
             <label for="silvaClassifier">Existing SILVA classifier path (.qza)</label>
-            <input id="silvaClassifier" type="text" placeholder="/path/to/existing/SILVA.classifier.qza" />
+            <input id="silvaClassifier" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/classification/SILVA/SILVA_144_SSURef_NR99_uniform_classifier_V4V5-515f-926r.qza" />
             <div class="hint">The pipeline validates and reads this exact file; it does not download or train a replacement.</div>
           </div>
-          <div id="silvaDownloadFields" class="field-group">
+          <div id="silvaDownloadFields" class="field-group hidden">
             <label for="silvaDownloadLink">Pre-trained SILVA classifier URL</label>
             <input id="silvaDownloadLink" type="url" value="https://www.arb-silva.de/fileadmin/silva_databases/release_144/QIIME2/2026.7/SSU/V4V5-515f-926r/uniform/SILVA_144_SSURef_NR99_uniform_classifier_V4V5-515f-926r.qza" />
             <div class="hint">Use a TaxonomicClassifier .qza compatible with your QIIME 2 environment and intended analysis. The official SILVA 144 preset follows the primer selection; a custom URL is kept exactly as entered.</div>
@@ -245,7 +245,7 @@ cd AMT29-analysis</pre>
             <div class="hint">RESCRIPt downloads the selected reference release, then the separate preparation rules train a classifier. Primer-region training is the default; advanced users can set <code>silva_reference_mode: "full_length"</code> in config.yml.</div>
             <div id="silvaTrainingWarning" class="notice">The supplied RESCRIPt environment cannot yet download SILVA 144 for training. Use the pre-trained 144 download, select a supported older release, or supply an environment that supports your chosen release. You can still generate this configuration.</div>
           </div>
-          <div id="silvaDestinationFields" class="field-group">
+          <div id="silvaDestinationFields" class="field-group hidden">
             <label id="silvaDatabaseDirLabel" for="silvaDatabaseDir">SILVA download destination directory</label>
             <input id="silvaDatabaseDir" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/classification/SILVA" />
             <div class="hint">Store the completed classifier outside this project clone so future projects can reuse it.</div>
@@ -257,17 +257,17 @@ cd AMT29-analysis</pre>
           <div class="field-group">
             <label for="pr2DatabaseMode">How should PR2 be obtained?</label>
             <select id="pr2DatabaseMode">
-              <option value="existing">Use existing databases</option>
+              <option value="existing" selected>Use existing databases</option>
               <option value="download">Download pre-trained database</option>
-              <option value="train" selected>Train database with RESCRIPt</option>
+              <option value="train">Train database with RESCRIPt</option>
             </select>
             <label for="pr2Version">PR2 reference version</label>
             <input id="pr2Version" type="text" value="5.1.1" />
             <div class="hint">Enter the release represented by your classifier or the reference release you wish to download and train.</div>
           </div>
-          <div id="pr2ExistingFields" class="field-group hidden">
+          <div id="pr2ExistingFields" class="field-group">
             <label for="pr2Classifier">Existing PR2 classifier path (.qza)</label>
-            <input id="pr2Classifier" type="text" placeholder="/path/to/existing/PR2.classifier.qza" />
+            <input id="pr2Classifier" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/classification/PR2/pr2_version_5.1.1_SSU_dada2.clean.culled.derep-sliced_GTGYCAGCMGCCGCGGTAA_CCGYCAATTYMTTTRAGTTT_dereplicated_final_classifier_qiime2-2026.7.qza" />
             <div class="hint">The pipeline validates and reads this exact file; it does not download or train a replacement.</div>
           </div>
           <div id="pr2DownloadFields" class="field-group hidden">
@@ -275,10 +275,10 @@ cd AMT29-analysis</pre>
             <input id="pr2DownloadLink" type="url" placeholder="https://example.org/PR2.classifier.qza" />
             <div class="hint">Use a TaxonomicClassifier .qza compatible with your QIIME 2 environment and intended analysis. The declared release is recorded in the report.</div>
           </div>
-          <div id="pr2TrainingFields" class="field-group">
+          <div id="pr2TrainingFields" class="field-group hidden">
             <div class="hint">RESCRIPt downloads the selected reference release, then the separate preparation rules train a classifier. Primer-region training is the default; advanced users can set <code>pr2_reference_mode: "full_length"</code> in config.yml.</div>
           </div>
-          <div id="pr2DestinationFields" class="field-group">
+          <div id="pr2DestinationFields" class="field-group hidden">
             <label id="pr2DatabaseDirLabel" for="pr2DatabaseDir">PR2 trained classifier destination directory</label>
             <input id="pr2DatabaseDir" type="text" value="/project2/fuhrman_1138/databases/eASV-Snakemake/databases/classification/PR2" />
             <div class="hint">Store the completed classifier outside this project clone so future projects can reuse it.</div>

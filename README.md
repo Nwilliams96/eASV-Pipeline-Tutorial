@@ -46,8 +46,10 @@ The published configuration page is available at
   download a pre-trained classifier, or train from a selected reference release
   with RESCRIPt. Only the chosen method's fields are shown and serialized;
   switching methods preserves the entered values for later use.
-- Defaults download the official SILVA 144 classifier and train PR2 5.1.1 with
-  the bundled QIIME 2 2026.7 environment. Reference releases remain editable and
+- Defaults reuse Nathan's existing SILVA 144 and PR2 5.1.1 classifiers on CARC,
+  with their paths pre-filled under the shared database root. Other users must
+  replace these paths or select download/training for their system. The bundled
+  environment is QIIME 2 2026.7. Reference releases remain editable and
   visible for all methods so reports can record the declared version. Native
   SILVA 144 acquisition is not yet supported by the supplied RESCRIPt environment;
   its training option displays a warning but still permits configuration export.

@@ -48,10 +48,25 @@ function fixture() {
   };
 }
 
-test("default independent database choices download SILVA and train PR2", () => {
+test("default database choices reuse Nathan's existing CARC classifiers", () => {
   const f = fixture();
-  assert.equal(f.nodes.get("silvaDatabaseMode").value, "download");
-  assert.equal(f.nodes.get("pr2DatabaseMode").value, "train");
+  assert.equal(f.nodes.get("silvaDatabaseMode").value, "existing");
+  assert.equal(f.nodes.get("pr2DatabaseMode").value, "existing");
+  const root = "/project2/fuhrman_1138/databases/eASV-Snakemake/databases/classification";
+  assert.equal(f.nodes.get("silvaClassifier").value,
+    `${root}/SILVA/SILVA_144_SSURef_NR99_uniform_classifier_V4V5-515f-926r.qza`);
+  assert.equal(f.nodes.get("pr2Classifier").value,
+    `${root}/PR2/pr2_version_5.1.1_SSU_dada2.clean.culled.derep-sliced_GTGYCAGCMGCCGCGGTAA_CCGYCAATTYMTTTRAGTTT_dereplicated_final_classifier_qiime2-2026.7.qza`);
+  f.run("updateDatabaseSetupText()");
+  const yaml = f.run("databaseConfigLines().join('\\n')");
+  for (const database of ["silva", "pr2"]) {
+    assert.equal(f.visible(`${database}ExistingFields`), true);
+    assert.equal(f.visible(`${database}DestinationFields`), false);
+    assert.equal(f.run(`validDatabaseSettings('${database}')`), true);
+    assert.match(yaml, new RegExp(`use_preexisting_${database}_database: true`));
+    assert.ok(yaml.includes(`${database}_classifier: ${JSON.stringify(f.nodes.get(`${database}Classifier`).value)}`));
+  }
+  assert.doesNotMatch(yaml, /download_link:|download_md5:|silva_database_dir:|pr2_database_dir:/);
   assert.equal(f.nodes.get("silvaVersion").value, "144");
   assert.equal(f.nodes.get("pr2Version").value, "5.1.1");
   assert.equal(f.nodes.get("haveBbsplitDatabase").checked, false);
@@ -122,6 +137,7 @@ test("mode switching retains input values but validates only active fields", () 
 
 test("SILVA presets follow primers and custom URLs never inherit preset checksums", () => {
   const f = fixture();
+  f.set("silvaDatabaseMode", "download");
   f.run("syncSilvaDownloadPreset()");
   let yaml = f.run("databaseConfigLines().join('\\n')");
   assert.match(yaml, /SILVA_download_md5: "f7757b01eb82e0ac78bf06427e410095"/);
