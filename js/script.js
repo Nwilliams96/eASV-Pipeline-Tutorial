@@ -380,6 +380,12 @@ function databaseSettings(database) {
   };
 }
 
+function validQiimeEnvironment(value) {
+  const specification = String(value ?? "").trim();
+  if (!specification || /[\0\r\n]/.test(specification)) return false;
+  return /\.ya?ml$/.test(specification) || /^[A-Za-z0-9_.-]+$/.test(specification);
+}
+
 function validDatabaseSettings(database) {
   const settings = databaseSettings(database);
   // Match the pipeline release resolver: accept releases such as 144 or 5.1.1,
@@ -517,7 +523,7 @@ function buildValidation() {
     { label: "Raw data location entered", ok: $("#rawdatadir").value.trim().length > 0 },
     { label: "Forward primer entered", ok: $("#fwdPrimer").value.trim().length > 0 },
     { label: "Reverse primer entered", ok: $("#revPrimer").value.trim().length > 0 },
-    { label: "QIIME 2 environment entered", ok: $("#qiime2version").value.trim().length > 0 },
+    { label: "QIIME 2 YAML path or installed environment name entered", ok: validQiimeEnvironment($("#qiime2version").value) },
     { label: "DADA2 settings are valid", ok: validDada2Settings() },
     { label: "Sample table present", ok: $$("#sampleBody tr").length > 0 },
     { label: "All configured internal standards are complete", ok: !$("#intstdToggle").checked || standardsReady }
@@ -891,7 +897,7 @@ function configToYAML() {
     '',
     `fwdPrimer: "${$("#fwdPrimer").value.trim()}"`,
     `revPrimer: "${$("#revPrimer").value.trim()}"`,
-    `qiime2version: "${$("#qiime2version").value.trim()}"`
+    `qiime2version: ${JSON.stringify($("#qiime2version").value.trim())}`
   ].join("\n");
 }
 

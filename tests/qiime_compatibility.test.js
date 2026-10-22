@@ -19,11 +19,16 @@ test("QIIME compatibility warning remains visible independently of the environme
   assert.ok(html.indexOf('id="qiimeCompatibilityNotice"') < html.indexOf('id="qiimeBlock"'));
 });
 
-test("QIIME setting is clearly a YAML definition path, not a named installed environment", () => {
-  assert.match(html, /QIIME 2 environment definition path \(\.yml\)/);
+test("QIIME setting distinguishes YAML reuse, installed names and multi-user sharing", () => {
+  assert.match(html, /QIIME 2 environment: YAML path or installed name/);
   assert.match(html, /id="qiime2version"[^>]*aria-describedby="qiimeCompatibilityNotice"/);
-  assert.match(html, /not a version number or an installed Conda environment name/);
-  assert.match(html, /Snakemake creates or reuses its managed environment/);
-  assert.match(html, /training and classification use this same definition/);
-  assert.match(script, /`qiime2version: "\$\{\$\("#qiime2version"\)\.value\.trim\(\)\}"`/);
+  assert.match(html, /hash of the definition/);
+  assert.match(html, /is reused, not recreated/);
+  assert.match(html, /does not scan arbitrary/);
+  assert.match(html, /does not create the named/);
+  assert.match(html, /fingerprints its installed packages/);
+  assert.match(html, /Sharing between multiple users/);
+  assert.match(html, /same pinned YAML definition/);
+  assert.match(html, /appropriate filesystem permissions/);
+  assert.match(script, /`qiime2version: \$\{JSON.stringify\(\$\("#qiime2version"\)\.value\.trim\(\)\)\}`/);
 });

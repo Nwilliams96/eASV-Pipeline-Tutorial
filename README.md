@@ -39,9 +39,13 @@ The published configuration page is available at
   labelled configuration sections so these required settings are easy to find.
 - The QIIME 2 section warns that existing/downloaded SILVA and PR2 classifiers
   must both be compatible with the selected QIIME 2 and scikit-learn environment.
-  `qiime2version` accepts an environment-definition YAML path, not an installed
-  Conda environment name; Snakemake creates/reuses its managed rule environment
-  from that definition. An environment's name alone does not verify compatibility.
+  `qiime2version` accepts a YAML definition path or an already installed Conda
+  environment name. YAML uses Snakemake's hash-managed reuse in `conda_envs_dir`;
+  a name selects an existing environment and does not create or validate it
+  against a YAML. Named environments are fingerprinted by installed packages
+  for classifier-cache tracking. Multi-user sharing should use the same pinned
+  YAML, shared environment directory, and suitable permissions. An environment's
+  name alone does not verify classifier compatibility.
 - SILVA and PR2 independently offer three methods: use an existing classifier,
   download a pre-trained classifier, or train from a selected reference release
   with RESCRIPt. Only the chosen method's fields are shown and serialized;

@@ -201,6 +201,19 @@ test("YAML quoting preserves paths and URLs containing special characters", () =
   assert.match(yaml, /classifier\.qza\?value=a&x=2/);
 });
 
+test("QIIME YAML paths and installed names serialize and validate consistently", () => {
+  const f = fixture();
+  for (const value of ["qiime2-2026.7", "base", "../envs/qiime.yml", '/shared/a "quoted" environment.yaml']) {
+    assert.equal(f.run(`validQiimeEnvironment(${JSON.stringify(value)})`), true);
+    f.set("qiime2version", value);
+    const line = f.run("configToYAML()").split("\n").find(row => row.startsWith("qiime2version:"));
+    assert.equal(JSON.parse(line.slice("qiime2version: ".length)), value);
+  }
+  for (const value of ["", "qiime;echo bad", "../not-a-yaml", "qiime\nother"]) {
+    assert.equal(f.run(`validQiimeEnvironment(${JSON.stringify(value)})`), false);
+  }
+});
+
 test("all generated database combinations validate against the downloaded schema", t => {
   // The runtime-only UI tests above need only Node. When the pipeline's Python
   // validator is available, also check the actual YAML/schema package contract.
@@ -231,6 +244,10 @@ test("all generated database combinations validate against the downloaded schema
     "validator = jsonschema.Draft202012Validator(schema)",
     "for config in payload['configs']:",
     "    validator.validate(yaml.safe_load(config))",
+    "for environment in ('qiime2-2026.7', '../envs/qiime.yaml'):",
+    "    config = yaml.safe_load(payload['configs'][0])",
+    "    config['qiime2version'] = environment",
+    "    validator.validate(config)",
     "for key in ('SILVAversion', 'PR2version'):",
     "    invalid = yaml.safe_load(payload['configs'][0])",
     "    invalid[key] = 'banana'",

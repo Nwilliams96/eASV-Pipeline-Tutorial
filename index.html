@@ -520,21 +520,32 @@ cd AMT29-analysis</pre>
           the same scikit-learn version used to train each classifier. Check the classifier provider's
           requirements: this pipeline uses one QIIME 2 environment for both databases, so it must
           support both classifiers. A matching Conda environment name alone does not guarantee compatibility.
-          <p><code>qiime2version</code> is the path to an environment-definition YAML file
-          (<code>.yml</code>), not a version number or an installed Conda environment name.
-          With <code>--use-conda</code>, Snakemake creates or reuses its managed environment from
-          that definition; simply activating a similarly named environment does not select it for these rules.
-          If you train a classifier locally, training and classification use this same definition.</p>
+          <p><code>qiime2version</code> accepts either an environment-definition YAML path
+          (<code>.yaml</code> or <code>.yml</code>) or an already installed Conda environment name
+          (for example, <code>qiime2-2026.7</code>). Enter a definition or an installed name, not just a release number.</p>
+          <p><strong>YAML:</strong> with <code>--use-conda</code>, Snakemake identifies its managed
+          environments by a hash of the definition. A completed matching environment in your configured
+          shared <code>conda_envs_dir</code> is reused, not recreated. Snakemake does not scan arbitrary
+          installed environments and compare their packages against the YAML.</p>
+          <p><strong>Installed name:</strong> the environment must already exist and be accessible
+          through Conda on the machine running Snakemake. The pipeline resolves its exact location and
+          fingerprints its installed packages for classifier-cache tracking. It does not create the named
+          environment or verify that its packages meet a separate YAML specification. Training and
+          classification use the same selected environment.</p>
+          <p><strong>Sharing between multiple users:</strong> use the same pinned YAML definition and
+          the same shared <code>conda_envs_dir</code>, with appropriate filesystem permissions.
+          Create environments once before other users reuse them, and do not modify shared environments
+          while jobs are running. A name that exists for one user may not exist for another.</p>
           <p><strong><a href="https://library.qiime2.org/data-resources" target="_blank" rel="noopener noreferrer">QIIME 2 classifier compatibility guidance</a></strong></p>
         </aside>
 
         <div class="toggle-row">
           <input id="qiimeToggle" type="checkbox" checked />
-          <label for="qiimeToggle">Do you have QIIME 2 installed?</label>
+          <label for="qiimeToggle">Show QIIME 2 environment setting</label>
         </div>
 
         <div id="qiimeBlock" class="field-group">
-          <label for="qiime2version">QIIME 2 environment definition path (.yml)</label>
+          <label for="qiime2version">QIIME 2 environment: YAML path or installed name</label>
           <input id="qiime2version" type="text" value="../envs/rachis-qiime2-linux-64-2026.7.yml" aria-describedby="qiimeCompatibilityNotice" />
         </div>
 
@@ -864,6 +875,10 @@ properties:
   conda_envs_dir:
     type: string
     description: shared directory for reusable Snakemake rule environments
+  qiime2version:
+    type: string
+    minLength: 1
+    description: QIIME 2 environment YAML path or installed Conda name; the workflow records its resolved environment
   database_dir:
     type: string
     description: shared root for BBsplit and supporting reference files
