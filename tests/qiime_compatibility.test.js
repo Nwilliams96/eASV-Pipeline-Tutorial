@@ -32,3 +32,20 @@ test("QIIME setting distinguishes YAML reuse, installed names and multi-user sha
   assert.match(html, /appropriate filesystem permissions/);
   assert.match(script, /`qiime2version: \$\{JSON.stringify\(\$\("#qiime2version"\)\.value\.trim\(\)\)\}`/);
 });
+
+test("QIIME guidance explains creation and adding older or unbundled definitions", () => {
+  const notice = html.match(/<aside class="note" id="qiimeCompatibilityNotice">([\s\S]*?)<\/aside>/)?.[1];
+  assert.ok(notice);
+  const text = notice.replace(/\s+/g, " ");
+  assert.match(text, /YAML file is an installation recipe, not an installed environment/);
+  assert.match(text, /file must exist, but Snakemake creates the matching environment/);
+  assert.match(text, /Conda and Snakemake must already be installed/);
+  assert.match(text, /added to the pipeline bundle through maintenance patches/);
+  assert.match(text, /older or other unbundled release/);
+  assert.match(text, /appropriate Linux environment YAML definition from QIIME 2/);
+  assert.match(text, /<code>workflow\/envs\/<\/code>/);
+  assert.match(text, /<code>\.\.\/envs\/my-qiime-environment\.yml<\/code>/);
+  assert.match(text, /absolute YAML path/);
+  assert.match(text, /does not automatically upgrade older filenames/);
+  assert.match(text, /commands, required plugins, or your classifiers/);
+});

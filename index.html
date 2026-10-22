@@ -527,6 +527,19 @@ cd AMT29-analysis</pre>
           environments by a hash of the definition. A completed matching environment in your configured
           shared <code>conda_envs_dir</code> is reused, not recreated. Snakemake does not scan arbitrary
           installed environments and compare their packages against the YAML.</p>
+          <p><strong>If the environment is not installed:</strong> the YAML file is an installation
+          recipe, not an installed environment. The file must exist, but Snakemake creates the matching
+          environment under <code>conda_envs_dir</code> when needed. Both supplied launch scripts enable
+          this with <code>--use-conda</code>. Conda and Snakemake must already be installed.</p>
+          <p><strong>Bundled and other QIIME 2 releases:</strong> newer environment definitions will be
+          added to the pipeline bundle through maintenance patches. To use an older or other unbundled
+          release, download the appropriate Linux environment YAML definition from QIIME 2, save it in
+          your cloned repository's <code>workflow/envs/</code> folder, and enter
+          <code>../envs/my-qiime-environment.yml</code> in the setting below, replacing the example
+          filename with your downloaded file's name. You can also supply an absolute YAML path.
+          The pipeline respects an explicitly selected definition; it does not automatically upgrade
+          older filenames. Changing releases does not guarantee compatibility with the current pipeline
+          commands, required plugins, or your classifiers: check these before running.</p>
           <p><strong>Installed name:</strong> the environment must already exist and be accessible
           through Conda on the machine running Snakemake. The pipeline resolves its exact location and
           fingerprints its installed packages for classifier-cache tracking. It does not create the named

@@ -46,6 +46,13 @@ The published configuration page is available at
   for classifier-cache tracking. Multi-user sharing should use the same pinned
   YAML, shared environment directory, and suitable permissions. An environment's
   name alone does not verify classifier compatibility.
+- The QIIME 2 guidance explains that missing YAML-managed environments are
+  created automatically by the supplied launch scripts, while the YAML file,
+  Conda, and Snakemake must already be available. Newer definitions will be
+  bundled through maintenance patches. Users can add older or other unbundled
+  Linux definitions to `workflow/envs/` and select `../envs/<filename>.yml`
+  (or an absolute YAML path). Explicit choices are not automatically upgraded;
+  users must check pipeline/plugin and classifier compatibility.
 - SILVA and PR2 independently offer three methods: use an existing classifier,
   download a pre-trained classifier, or train from a selected reference release
   with RESCRIPt. Only the chosen method's fields are shown and serialized;
